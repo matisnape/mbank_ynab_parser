@@ -1,2 +1,4 @@
 *.csv
 .vscode
+constants.py
+__pycache__
