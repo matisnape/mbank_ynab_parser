@@ -62,14 +62,30 @@ def convert_csv(input_csv, new_csv):
             # make strings prettier
             for item in new_row:
                 item = re.sub('["\']', '', item)
-            print(new_row)
+            # print(new_row)
             transactions_list.append(new_row)
         write_file(transactions_list, new_csv)
+        # convert for YNAB
+        ynab_transactions = []
+        for row in transactions_list:
+            row = [row[0], row[3], row[2], row[5]]
+            ynab_transactions.append(row)
+            print(row)
+        write_file_ynab(ynab_transactions, new_csv)
 
 def write_file(data, new_csv):
     YNAB_DELIMITER = ';'
 
     with open(new_csv, 'w', encoding='utf-8') as converted_file:
+        csvWriter = csv.writer(converted_file, delimiter=YNAB_DELIMITER)
+        for row in data:
+            csvWriter.writerow(row)
+
+def write_file_ynab(data, new_csv):
+    YNAB_DELIMITER = ','
+    YNAB_FILE = 'YNABready_' + new_csv
+
+    with open(YNAB_FILE, 'w', encoding='utf-8') as converted_file:
         csvWriter = csv.writer(converted_file, delimiter=YNAB_DELIMITER)
         for row in data:
             csvWriter.writerow(row)
