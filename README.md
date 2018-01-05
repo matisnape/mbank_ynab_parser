@@ -33,3 +33,15 @@ PR 1
 - ~~better fit for transfers between owned accounts~~
 - ~~direct parsing for YNAB~~
 
+### Acknowledgements
+This script is inspired by https://github.com/aniav/ynab-csv
+
+### Reporting Issues
+If you have any other issues or suggestions, go to https://github.com/matisnape/mbank_ynab_parser/issues and create an issue if one doesn't already exist. If the issue has to do with your csv file, please create a new gist (https://gist.github.com/) with the content of the CSV file and share the link in the issue. If you tweak the CSV file before sharing, just make sure whatever version you end up sharing still causes the problem you describe.
+
+### Contribute
+- Fork and clone the project
+- Make your changes locally and test them to make sure they work
+- Commit those changes and push to your forked repository
+- Make a new pull request
+
