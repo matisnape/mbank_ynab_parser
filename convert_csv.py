@@ -72,24 +72,13 @@ def convert_csv(input_csv, new_csv):
             # make strings prettier
             for item in new_row:
                 item = re.sub('["\']', '', item)
-            # print(new_row)
-            transactions_list.append(new_row)
-        write_file(transactions_list, new_csv)
-        # convert for YNAB
-        ynab_transactions = []
-        for row in transactions_list:
-            row = [row[0], row[3], row[2], row[5]]
-            ynab_transactions.append(row)
-            print(row)
-        write_file_ynab(ynab_transactions, new_csv)
+            # ignore transfer from own accounts
+            # TODO: add option for this in the cmd
+            if new_row[1] != INTERNAL_INCOMING:
+                print(new_row)
+                transactions_list.append([new_row[0], new_row[2], new_row[3], new_row[5]])
+            write_file_ynab(transactions_list, new_csv)
 
-def write_file(data, new_csv):
-    YNAB_DELIMITER = ';'
-
-    with open(new_csv, 'w', encoding='utf-8') as converted_file:
-        csvWriter = csv.writer(converted_file, delimiter=YNAB_DELIMITER)
-        for row in data:
-            csvWriter.writerow(row)
 def replace_account(row, account):
     if INTERNAL_TRANSFER in row[1] and (account["id"] in row[4]):
         row[3] = 'Transfer: {}'.format(account["name"])
