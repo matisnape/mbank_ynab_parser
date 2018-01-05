@@ -26,12 +26,7 @@ def convert_csv(input_csv, new_csv):
     ]
 
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
-        readFile = csv_file.readlines()[38:-5]
-
-        csvRows = []
-        for row in readFile:
-            csvRows.append(row)
-
+        csvRows = csv_file.readlines()[38:-5]
         transactions_list = []
         for row in csvRows:
             new_row = row.split(';')
