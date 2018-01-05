@@ -34,7 +34,10 @@ def main(argv):
             input_file = arg
         elif opt in ("-o", "--ofile"):
             output_file = arg
-    convert_csv(input_file, output_file)
+    if not output_file:
+        convert_csv(input_file, input_file)
+    else:
+        convert_csv(input_file, output_file)
 
 def convert_csv(input_csv, new_csv):
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
