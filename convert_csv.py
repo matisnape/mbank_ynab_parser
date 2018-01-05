@@ -2,6 +2,21 @@ import csv
 import sys
 import getopt
 import re
+import constants
+
+YNAB_HEADERS = constants.YNAB_HEADERS
+REGULARNE = constants.REGULARNE
+SPLATA_KART = constants.SPLATA_KART
+KARTA = constants.KARTA
+KAPITALIZACJA = constants.KAPITALIZACJA
+PODATEK_ODSETKI = constants.PODATEK_ODSETKI
+INTERNAL_TRANSFER = constants.INTERNAL_TRANSFER
+INTERNAL_INCOMING = constants.INTERNAL_INCOMING
+MBANK_DELIMITER = constants.MBANK_DELIMITER
+OWNER = constants.OWNER
+KONTO_1 = constants.KONTO_1
+KONTO_2 = constants.KONTO_2
+KONTO_3 = constants.KONTO_3
 
 def main(argv):
     input_file = ''
@@ -22,19 +37,9 @@ def main(argv):
     convert_csv(input_file, output_file)
 
 def convert_csv(input_csv, new_csv):
-    HEADERS = [
-        'DATE', '#Opis operacji', 'MEMO', 'PAYEE', '#Numer konta', 'AMOUNT'
-    ]
-    REGULARNE = 'PRZELEW REGULARNE OSZCZ'
-    SPLATA_KART = 'ATA KARTY KREDYT.'
-    KARTA = 'KARTA'
-    KAPITALIZACJA = 'KAPITALIZACJA ODSETEK'
-    PODATEK_ODSETKI = 'PODATEK OD ODSETEK KAPIT'
-    MBANK_DELIMITER = ';'
-
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
         csvRows = csv_file.readlines()[38:-5]
-        transactions_list = [HEADERS]
+        transactions_list = [YNAB_HEADERS]
         for row in csvRows:
             new_row = row.split(MBANK_DELIMITER)
             new_row = new_row[:-2]
