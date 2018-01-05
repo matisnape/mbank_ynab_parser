@@ -36,7 +36,7 @@ def convert_csv(input_csv, new_csv):
         for row in csvRows:
             new_row = row.split(';')
             new_row = new_row[:-2]
-            new_row[6] = new_row[6][:-3] + '.' + new_row[6][-2:]
+            new_row[6] = (new_row[6][:-3] + '.' + new_row[6][-2:]).replace(' ', '')
             new_row.pop(1)
             transactions_list.append(new_row)
         transactions_list.insert(0, headers)
