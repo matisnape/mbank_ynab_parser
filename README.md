@@ -21,3 +21,4 @@ You can ask for help with:
 1) better fit with "Regularne oszczędzanie"
 2) better fit for transfers between owned accounts
 3) maybe some screaming capslocked values for fields that don't have something relevant
+4) maybe refactor :D
