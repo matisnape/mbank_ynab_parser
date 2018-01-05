@@ -23,11 +23,13 @@ You can ask for help with:
 
 ## Planned improvements
 
+- maybe some screaming capslocked values for fields that don't have something relevant
+- maybe refactor :D
+- tests
 
-3) maybe some screaming capslocked values for fields that don't have something relevant
-4) maybe refactor :D
-
-~~1) better fit with "Regularne oszczędzanie"~~
-~~2) better fit for transfers between owned accounts~~
-~~5) direct parsing for YNAB~~
+## Changelog
+PR 1
+- ~~better fit with "Regularne oszczędzanie"~~
+- ~~better fit for transfers between owned accounts~~
+- ~~direct parsing for YNAB~~
 
