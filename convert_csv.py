@@ -55,7 +55,7 @@ def convert_csv(input_csv, new_csv):
         csvRows = csv_file.readlines()[38:-5]
         transactions_list = [YNAB_HEADERS]
         for row in csvRows:
-            new_row = row.split(MBANK_DELIMITER)
+            new_row = row.split(';')
             new_row = new_row[:-2]
             new_row[OLD_AMOUNT_COL] = (new_row[OLD_AMOUNT_COL][:-3] + '.' + new_row[OLD_AMOUNT_COL][-2:]).replace(' ', '')
             # remove Data księgowania
