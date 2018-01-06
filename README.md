@@ -4,6 +4,7 @@ This is a simple python script for making mBank CSV file for import in YNAB
 
 ## Assumptions & Info
 
+- the app is written for Python 3, although it should work under 2 as well
 - the app is assuming having multiple accounts inside YNAB - it ignores incoming internal transfers to avoid duplicate internal transactions (example: keeps A->B but ignores B<-A)
 - you need to specify the account and credit card data in `constants.py` - name you would like to see in the file and the account number
 

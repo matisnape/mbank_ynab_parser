@@ -9,7 +9,6 @@ YNAB_FILENAME_PREFIX = constants.YNAB_FILENAME_PREFIX
 YNAB_DELIMITER = constants.YNAB_DELIMITER
 MBANK_DELIMITER = constants.MBANK_DELIMITER
 
-REGULARNE = constants.REGULARNE
 SPLATA_KART = constants.SPLATA_KART
 KARTA = constants.KARTA
 KAPITALIZACJA = constants.KAPITALIZACJA
@@ -50,7 +49,7 @@ def main(argv):
     else:
         convert_csv(input_file, output_file)
 
-def convert_csv(input_csv, new_csv, ignore_internal=True):
+def convert_csv(input_csv, new_csv, ignore_internal=False):
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
         csvRows = csv_file.readlines()[38:-5]
         transactions_list = [YNAB_HEADERS]
