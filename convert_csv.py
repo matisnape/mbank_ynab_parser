@@ -1,7 +1,6 @@
 import csv
 import sys
 import getopt
-import re
 import constants
 
 YNAB_HEADERS = constants.YNAB_HEADERS
@@ -44,12 +43,25 @@ def main(argv):
             input_file = arg
         elif opt in ("-o", "--ofile"):
             output_file = arg
-    if not output_file:
-        convert_csv(input_file, input_file)
-    else:
-        convert_csv(input_file, output_file)
 
-def convert_csv(input_csv, new_csv, ignore_internal=True):
+    ignore_internal_question = (
+        input("Ignore inflows from internal accounts - 'Przelewy Wewnętrzne Przychodzące'? Y/N: ")
+        ).lower()
+    if ignore_internal_question == 'y':
+        ignore_internal = True
+    elif ignore_internal_question == 'n':
+        ignore_internal = False
+    else:
+        print("Sorry, I haven't understood your answer. Try again, please :)")
+        sys.exit()
+
+    if not output_file:
+        convert_csv(input_file, input_file, ignore_internal)
+    else:
+        convert_csv(input_file, output_file, ignore_internal)
+
+def convert_csv(input_csv, new_csv, ignore_internal):
+
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
         csvRows = csv_file.readlines()[38:-5]
         transactions_list = [YNAB_HEADERS]
@@ -57,7 +69,7 @@ def convert_csv(input_csv, new_csv, ignore_internal=True):
         for row in csvRows:
             new_row = convert_row(row)
 
-            if ignore_internal == True and new_row[OPIS_OPERACJI_COL] == INTERNAL_INCOMING:
+            if ignore_internal and new_row[OPIS_OPERACJI_COL] == INTERNAL_INCOMING:
                 continue
             transactions_list.append(
                 [
@@ -67,6 +79,7 @@ def convert_csv(input_csv, new_csv, ignore_internal=True):
                     new_row[AMOUNT_COL]
                 ]
             )
+            print(new_row)
 
         write_file_ynab(transactions_list, new_csv)
 
