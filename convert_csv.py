@@ -49,7 +49,7 @@ def main(argv):
     else:
         convert_csv(input_file, output_file)
 
-def convert_csv(input_csv, new_csv, ignore_internal=False):
+def convert_csv(input_csv, new_csv, ignore_internal=True):
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
         csvRows = csv_file.readlines()[38:-5]
         transactions_list = [YNAB_HEADERS]
@@ -57,28 +57,16 @@ def convert_csv(input_csv, new_csv, ignore_internal=False):
         for row in csvRows:
             new_row = convert_row(row)
 
-            # ignore transfer from own accounts
-            # TODO: add option for this in the cmd
-            if ignore_internal == True:
-                if new_row[OPIS_OPERACJI_COL] != INTERNAL_INCOMING:
-                    transactions_list.append(
-                        [
-                            new_row[DATE_COL],
-                            new_row[MEMO_COL],
-                            new_row[PAYEE_COL],
-                            new_row[AMOUNT_COL]
-                        ]
-                    )
-            elif ignore_internal == False:
-                print(new_row)
-                transactions_list.append(
-                    [
-                        new_row[DATE_COL],
-                        new_row[MEMO_COL],
-                        new_row[PAYEE_COL],
-                        new_row[AMOUNT_COL]
-                    ]
-                )
+            if ignore_internal == True and new_row[OPIS_OPERACJI_COL] == INTERNAL_INCOMING:
+                continue
+            transactions_list.append(
+                [
+                    new_row[DATE_COL],
+                    new_row[MEMO_COL],
+                    new_row[PAYEE_COL],
+                    new_row[AMOUNT_COL]
+                ]
+            )
 
         write_file_ynab(transactions_list, new_csv)
 
