@@ -27,6 +27,7 @@ You can ask for help with:
 ## Planned improvements
 
 - support for credit card csv (it has different structure)
+- introduce OOP
 - maybe some screaming capslocked values for fields that don't have something relevant
 - maybe refactor :D
 - tests
