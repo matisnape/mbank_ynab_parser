@@ -14,6 +14,7 @@ KAPITALIZACJA = constants.KAPITALIZACJA
 PODATEK_ODSETKI = constants.PODATEK_ODSETKI
 INTERNAL_TRANSFER = constants.INTERNAL_TRANSFER
 INTERNAL_INCOMING = constants.INTERNAL_INCOMING
+OWNER = constants.OWNER
 
 KONTO_1 = constants.KONTO_1
 KONTO_2 = constants.KONTO_2
@@ -63,7 +64,9 @@ def convert_csv(input_csv, ignore_internal):
         for row in csvRows:
             new_row = convert_row(row)
 
-            if ignore_internal and new_row[OPIS_OPERACJI_COL] == INTERNAL_INCOMING:
+            if (ignore_internal and
+                new_row[OPIS_OPERACJI_COL] == INTERNAL_INCOMING and
+                OWNER in new_row[PAYEE_COL]):
                 continue
             transactions_list.append(
                 [
