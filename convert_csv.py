@@ -28,7 +28,6 @@ MEMO_COL = 2
 PAYEE_COL = 3
 NUMER_KONTA_COL = 4
 AMOUNT_COL = 5
-OLD_AMOUNT_COL = 6
 
 def main(argv):
     input_file = ''
@@ -51,7 +50,7 @@ def main(argv):
     else:
         convert_csv(input_file, output_file)
 
-def convert_csv(input_csv, new_csv):
+def convert_csv(input_csv, new_csv, ignore_internal=True):
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
         csvRows = csv_file.readlines()[38:-5]
         transactions_list = [YNAB_HEADERS]
@@ -61,39 +60,54 @@ def convert_csv(input_csv, new_csv):
 
             # ignore transfer from own accounts
             # TODO: add option for this in the cmd
-            if new_row[OPIS_OPERACJI_COL] != INTERNAL_INCOMING:
+            if ignore_internal == True:
+                if new_row[OPIS_OPERACJI_COL] != INTERNAL_INCOMING:
+                    transactions_list.append(
+                        [
+                            new_row[DATE_COL],
+                            new_row[MEMO_COL],
+                            new_row[PAYEE_COL],
+                            new_row[AMOUNT_COL]
+                        ]
+                    )
+            elif ignore_internal == False:
                 print(new_row)
                 transactions_list.append(
-                    [new_row[DATE_COL], new_row[MEMO_COL], new_row[PAYEE_COL], new_row[AMOUNT_COL]]
+                    [
+                        new_row[DATE_COL],
+                        new_row[MEMO_COL],
+                        new_row[PAYEE_COL],
+                        new_row[AMOUNT_COL]
+                    ]
                 )
 
         write_file_ynab(transactions_list, new_csv)
 
 def convert_row(row):
     new_row = row.split(';')[:-2]
-    format_expense_amount(new_row)
     # remove Data księgowania
     new_row.pop(1)
-    # merge Numer konta with Memo
+
+    format_expense_amount(new_row)
     merge_accountid_with_memo(new_row)
     # REGULARNE OSZCZĘDZANIE
-    replace_regularne(new_row, KONTO_REGULARNE)
+    rename_regularne_oszczedzanie(new_row, KONTO_REGULARNE)
     # Credit Card pay up
-    replace_credit_payup(new_row, KARTA)
+    rename_credit_payup(new_row, KARTA)
     # Kapitalizacja & Odsetki
     replace_other(new_row, KAPITALIZACJA)
     replace_other(new_row, PODATEK_ODSETKI)
     # if Payee empty, move Memo there
     populate_payee_if_empty(new_row)
     # transfer to accounts
-    replace_account(new_row, KONTO_1)
-    replace_account(new_row, KONTO_2)
-    replace_account(new_row, KONTO_3)
+    rename_internal_transfer(new_row, KONTO_1)
+    rename_internal_transfer(new_row, KONTO_2)
+    rename_internal_transfer(new_row, KONTO_3)
 
     return new_row
 
 def format_expense_amount(row):
-    row[OLD_AMOUNT_COL] = row[OLD_AMOUNT_COL].replace(',', '.').replace(' ', '')
+    row[AMOUNT_COL] = row[AMOUNT_COL].replace(',', '.').replace(' ', '')
 
 def populate_payee_if_empty(row):
     if row[PAYEE_COL] == '"  "':
@@ -104,11 +118,11 @@ def merge_accountid_with_memo(row):
     if row[NUMER_KONTA_COL] != '':
         row[MEMO_COL] = row[MEMO_COL] + row[NUMER_KONTA_COL]
 
-def replace_account(row, account):
+def rename_internal_transfer(row, account):
     if INTERNAL_TRANSFER in row[OPIS_OPERACJI_COL] and (account["id"] in row[NUMER_KONTA_COL]):
         row[PAYEE_COL] = 'Transfer: {}'.format(account["name"])
 
-def replace_regularne(row, account):
+def rename_regularne_oszczedzanie(row, account):
     if KONTO_REGULARNE["id"] in row[OPIS_OPERACJI_COL]:
         row[PAYEE_COL] = 'Transfer: {}'.format(account["name"])
 
@@ -116,7 +130,7 @@ def replace_other(row, word):
     if word in row[OPIS_OPERACJI_COL]:
         row[PAYEE_COL] = word.capitalize()
 
-def replace_credit_payup(row, card):
+def rename_credit_payup(row, card):
     if SPLATA_KART in row[OPIS_OPERACJI_COL] and card["id"] in row[MEMO_COL]:
         row[PAYEE_COL] = 'Transfer: {}'.format(card["name"])
 
