@@ -28,34 +28,7 @@ PAYEE_COL = 3
 NUMER_KONTA_COL = 4
 AMOUNT_COL = 5
 
-def main(argv):
-    input_file = ''
-    try:
-        opts, args = getopt.getopt(argv, "hi:", ["ifile="])
-    except getopt.GetoptError:
-        print('convert_csv.py -i <path to inputfile>')
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print('convert_csv.py -i <path to inputfile>')
-            sys.exit()
-        elif opt in ("-i", "--ifile"):
-            input_file = arg
-
-    ignore_internal_question = (input(
-        "Ignore inflows from internal accounts - 'Przelewy Wewnętrzne Przychodzące'? Y/N: "
-        )).lower()
-    if ignore_internal_question == 'y':
-        ignore_internal = True
-    elif ignore_internal_question == 'n':
-        ignore_internal = False
-    else:
-        print("Sorry, I haven't understood your answer. Try again, please :)")
-        sys.exit()
-
-    convert_csv(input_file, ignore_internal)
-
-def convert_csv(input_csv, ignore_internal):
+def convert_csv(input_csv, ignore_param):
 
     with open(input_csv, 'r', encoding='cp1250') as csv_file:
         csvRows = csv_file.readlines()[38:-5]
@@ -64,7 +37,7 @@ def convert_csv(input_csv, ignore_internal):
         for row in csvRows:
             new_row = convert_row(row)
 
-            if (ignore_internal and
+            if (ignore_param and
                 new_row[OPIS_OPERACJI_COL] == INTERNAL_INCOMING and
                 OWNER in new_row[PAYEE_COL]):
                 continue
@@ -79,6 +52,7 @@ def convert_csv(input_csv, ignore_internal):
             print(new_row)
 
         write_file_ynab(transactions_list, input_csv)
+        print("Parsing complete.")
 
 def convert_row(row):
     new_row = row.split(';')[:-2]
@@ -140,4 +114,27 @@ def write_file_ynab(data, new_csv):
             csvWriter.writerow(row)
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hi:", ["ifile="])
+    except getopt.GetoptError:
+        print('convert_csv.py -i <path to inputfile>')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print('convert_csv.py -i <path to inputfile>')
+            sys.exit()
+        elif opt in ("-i", "--ifile"):
+            input_file = arg
+
+    ignore_internal_question = (input(
+        "Ignore inflows from internal accounts - 'Przelewy Wewnętrzne Przychodzące'? Y/N: "
+        )).lower()
+    if ignore_internal_question == 'y':
+        ignore_internal = True
+    elif ignore_internal_question == 'n':
+        ignore_internal = False
+    else:
+        print("Sorry, I haven't understood your answer. Try again, please :)")
+        sys.exit()
+
+    convert_csv(input_file, ignore_internal)
