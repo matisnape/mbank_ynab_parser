@@ -2,6 +2,8 @@ import csv
 import constants as c
 
 class AbstractAccountParser:
+    def __init__(self, input_csv):
+        self.input_csv = input_csv
 
     def print_each_transaction_from(self, listing):
         for transaction in listing:
@@ -17,7 +19,6 @@ class AbstractAccountParser:
                 csv_writer.writerow(row)
 
 class AccountParser(AbstractAccountParser):
-
     DATE_COL = 0
     OPIS_OPERACJI_COL = 1
     MEMO_COL = 2
@@ -26,8 +27,7 @@ class AccountParser(AbstractAccountParser):
     AMOUNT_COL = 5
 
     def __init__(self, input_csv):
-        super().__init__()
-        self.input_csv = input_csv
+        super().__init__(input_csv)
 
     def convert_csv(self, input_csv, ignore_param):
 
