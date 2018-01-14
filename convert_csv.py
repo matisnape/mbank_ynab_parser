@@ -6,8 +6,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Parse mBank CSV for YNAB.')
     parser.add_argument(
-        '-i', '--input',
-        required=True,
         dest='input_file',
         help='CSV file for parsing'
     )
