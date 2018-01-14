@@ -1,4 +1,3 @@
-import sys
 import argparse
 from mbank_parser import AccountParser, CreditCardParser
 

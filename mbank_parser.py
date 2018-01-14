@@ -1,7 +1,23 @@
 import csv
 import constants as c
 
-class AccountParser:
+class AbstractAccountParser:
+
+    def print_each_transaction_from(self, listing):
+        for transaction in listing:
+            print(transaction)
+        print("Parsing complete")
+
+    def write_file_ynab(self, data, new_csv):
+        ynab_filename = c.YNAB_FILENAME_PREFIX + new_csv
+
+        with open(ynab_filename, 'w', encoding='utf-8') as converted_file:
+            csv_writer = csv.writer(converted_file, delimiter=c.YNAB_DELIMITER)
+            for row in data:
+                csv_writer.writerow(row)
+
+class AccountParser(AbstractAccountParser):
+
     DATE_COL = 0
     OPIS_OPERACJI_COL = 1
     MEMO_COL = 2
@@ -10,6 +26,7 @@ class AccountParser:
     AMOUNT_COL = 5
 
     def __init__(self, input_csv):
+        super().__init__()
         self.input_csv = input_csv
 
     def convert_csv(self, input_csv, ignore_param):
@@ -82,14 +99,6 @@ class AccountParser:
         if c.SPLATA_KART in row[self.OPIS_OPERACJI_COL] and card["id"] in row[self.MEMO_COL]:
             row[self.PAYEE_COL] = 'Transfer: {}'.format(card["name"])
 
-    def write_file_ynab(self, data, new_csv):
-        ynab_filename = c.YNAB_FILENAME_PREFIX + new_csv
-
-        with open(ynab_filename, 'w', encoding='utf-8') as converted_file:
-            csv_writer = csv.writer(converted_file, delimiter=c.YNAB_DELIMITER)
-            for row in data:
-                csv_writer.writerow(row)
-
     def add_selected_cols_from_row_to_list(self, row, listing):
         listing.append(
             [
@@ -99,12 +108,6 @@ class AccountParser:
                 row[self.AMOUNT_COL]
             ]
         )
-
-
-    def print_each_transaction_from(self, listing):
-        for transaction in listing:
-            print(transaction)
-        print("Parsing complete")
 
 class CreditCardParser(AccountParser):
 
