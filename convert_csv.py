@@ -10,11 +10,12 @@ if __name__ == "__main__":
         '-i', '--input',
         required=True,
         dest='input_file',
+        help='CSV file for parsing'
     )
     parser.add_argument(
         '-c', '--credit',
         action='store_true',
-        help='uses parser for credit card csv'
+        help='optional, uses parser for credit card csv'
     )
     args = parser.parse_args()
 
