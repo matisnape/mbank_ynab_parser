@@ -2,6 +2,7 @@ import csv
 import sys
 import getopt
 import constants
+from mbank_parser import AccountParser, CreditCardParser
 
 YNAB_HEADERS = constants.YNAB_HEADERS
 YNAB_FILENAME_PREFIX = constants.YNAB_FILENAME_PREFIX
@@ -136,5 +137,6 @@ if __name__ == "__main__":
     else:
         print("Sorry, I haven't understood your answer. Try again, please :)")
         sys.exit()
-
-    convert_csv(input_file, ignore_internal)
+    # parser = AccountParser(input_file)
+    parser = CreditCardParser(input_file)
+    parser.convert_csv(input_file, ignore_internal)
