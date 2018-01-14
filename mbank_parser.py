@@ -15,10 +15,10 @@ class AccountParser:
     def convert_csv(self, input_csv, ignore_param):
 
         with open(self.input_csv, 'r', encoding='cp1250') as csv_file:
-            csvRows = csv_file.readlines()[38:-5]
+            csv_rows = csv_file.readlines()[38:-5]
             transactions_list = [c.YNAB_HEADERS]
 
-            for row in csvRows:
+            for row in csv_rows:
                 new_row = self.convert_row(row)
 
                 if (ignore_param and
@@ -86,9 +86,9 @@ class AccountParser:
         ynab_filename = c.YNAB_FILENAME_PREFIX + new_csv
 
         with open(ynab_filename, 'w', encoding='utf-8') as converted_file:
-            csvWriter = csv.writer(converted_file, delimiter=c.YNAB_DELIMITER)
+            csv_writer = csv.writer(converted_file, delimiter=c.YNAB_DELIMITER)
             for row in data:
-                csvWriter.writerow(row)
+                csv_writer.writerow(row)
 
     def add_selected_cols_from_row_to_list(self, row, listing):
         listing.append(
@@ -119,10 +119,10 @@ class CreditCardParser(AccountParser):
     def convert_csv(self, input_csv, ignore_param):
 
         with open(self.input_csv, 'r', encoding='cp1250') as csv_file:
-            csvRows = csv_file.readlines()[34:-8]
+            csv_rows = csv_file.readlines()[34:-8]
             transactions_list = [c.YNAB_HEADERS]
 
-            for row in csvRows:
+            for row in csv_rows:
                 new_row = row.split(';')
                 if len(new_row) == 9 and c.OPERATION_HEADER not in new_row[0]:
                     if (ignore_param and new_row[self.MEMO_COL] == c.REPAYMENT):
