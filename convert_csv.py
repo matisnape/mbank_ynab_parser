@@ -1,5 +1,4 @@
 import sys
-import getopt
 import argparse
 from mbank_parser import AccountParser, CreditCardParser
 
