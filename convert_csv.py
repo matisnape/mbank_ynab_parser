@@ -19,6 +19,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     input_file = args.input_file
+
     if args.credit:
         mbank_parser = CreditCardParser(input_file)
         print("Parsing credit card data:")
