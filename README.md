@@ -15,8 +15,11 @@ This is a simple python script for making mBank CSV file for import in YNAB
 1) `convert_csv.py <path to inputfile>`
 
 available options:
+
 `-h` - help
+
 `-c` - for parsing credit card csv
+
 `-ii` - for ignoring internal transactions
 
    Note: Will work with paths from the same directory or from fullpath
