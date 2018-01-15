@@ -25,7 +25,6 @@ available options:
 3) Import file to appropriate account
 
 ## Planned improvements
-
 - maybe some screaming capslocked values for fields that don't have something relevant
 - tests
 
