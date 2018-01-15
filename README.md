@@ -7,41 +7,43 @@ This is a simple python script for making mBank CSV file for import in YNAB
 - the script is written for Python 3, although it should work under 2 as well
 - the script is assuming having multiple accounts inside YNAB - you're prompted to decide about ignoring internal incoming transfers to avoid duplicate transactions (example for True: keeps A->B but ignores B<-A)
 - you need to specify the account and credit card data in `constants.py` - name you would like to see in the file and the account number
-- this script DOESN'T support credit card csv yet.
 
 ## Usage
 
 0) Create `constants.py` file from template
     `cp constants.template.py constants.py`
-1) `convert_csv.py -i <path to inputfile>`
+1) `convert_csv.py <path to inputfile>`
+
+available options:
+`-h` - help
+`-c` - for parsing credit card csv
+`-ii` - for ignoring internal transactions
 
    Note: Will work with paths from the same directory or from fullpath
    Note: Output file will be named `YNAB_ready_inputfile.csv`
-2) Decide about ignoring incoming internal transactions: `y/n`
-3) Go to YNAB
-4) Import file to appropriate account
-
-You can ask for help with:
-`convert_csv.py -h`
+2) Go to YNAB
+3) Import file to appropriate account
 
 ## Planned improvements
-
-- support for credit card csv (it has different structure)
-- introduce OOP
 - maybe some screaming capslocked values for fields that don't have something relevant
-- maybe refactor :D
 - tests
 
 ## Changelog
+PR 3
+- support for credit card statements
+- introduced classes for account & credit card
+- replaced getopt with argparse for command line arguments
+- cleanup in command line arguments
+
 PR 2
 - refactored some stuff
 - removed output file option (just generating the new file based on the input)
 - prompting user for decision about ignoring internal incoming transactions
 
 PR 1
-- ~~better fit with "Regularne oszczędzanie"~~
-- ~~better fit for transfers between owned accounts~~
-- ~~direct parsing for YNAB~~
+- better fit with "Regularne oszczędzanie"
+- better fit for transfers between owned accounts
+- direct parsing for YNAB
 
 ### Acknowledgements
 This script is inspired by https://github.com/aniav/ynab-csv
