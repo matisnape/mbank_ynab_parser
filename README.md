@@ -22,6 +22,7 @@ available options:
 
    Note: Will work with paths from the same directory or from fullpath
    Note: Output file will be named `YNAB_ready_inputfile.csv`  
+
 2) Go to YNAB  
 3) Import file to appropriate account  
 
