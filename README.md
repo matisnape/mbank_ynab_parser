@@ -21,9 +21,9 @@ available options:
 `-ii` - for ignoring internal transactions
 
    Note: Will work with paths from the same directory or from fullpath
-   Note: Output file will be named `YNAB_ready_inputfile.csv`
-2) Go to YNAB
-3) Import file to appropriate account
+   Note: Output file will be named `YNAB_ready_inputfile.csv`  
+2) Go to YNAB  
+3) Import file to appropriate account  
 
 ## Planned improvements
 - maybe some screaming capslocked values for fields that don't have something relevant
