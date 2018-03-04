@@ -20,7 +20,7 @@ available options:
 `-c` - for parsing credit card csv  
 `-ii` - for ignoring internal transactions
 
-   Note: Will work with paths from the same directory or from fullpath
+   Note: Will work only with paths from the same directory
    Note: Output file will be named `YNAB_ready_inputfile.csv`  
 
 2) Go to YNAB  
@@ -29,6 +29,7 @@ available options:
 ## Planned improvements
 - maybe some screaming capslocked values for fields that don't have something relevant
 - tests
+- support for files from directory different than the one of the script
 
 ## Changelog
 PR 3
