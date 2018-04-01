@@ -12,19 +12,19 @@ This is a simple python script for making mBank CSV file for import in YNAB
 
 0) Create `constants.py` file from template
     `cp constants.template.py constants.py`
-1) `convert_csv.py <path to inputfile>`
+1) `python3 convert_csv.py <path to inputfile>`
 
 available options:
 
-`-h` - help  
-`-c` - for parsing credit card csv  
+`-h` - help
+`-c` - for parsing credit card csv
 `-ii` - for ignoring internal transactions
 
    Note: Will work with paths from the same directory or from fullpath
-   Note: Output file will be named `YNAB_ready_inputfile.csv`  
+   Note: Output file will be named `YNAB_ready_inputfile.csv`
 
-2) Go to YNAB  
-3) Import file to appropriate account  
+2) Go to YNAB
+3) Import file to appropriate account
 
 ## Planned improvements
 - maybe some screaming capslocked values for fields that don't have something relevant
