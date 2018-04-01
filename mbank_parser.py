@@ -5,12 +5,14 @@ class AbstractAccountParser:
     def __init__(self, input_csv):
         self.input_csv = input_csv
 
-    def print_each_transaction_from(self, listing):
+    @staticmethod
+    def print_each_transaction_from(listing):
         for transaction in listing:
             print(transaction)
         print("Parsing complete")
 
-    def write_file_ynab(self, data, new_csv):
+    @staticmethod
+    def write_file_ynab(data, new_csv):
         ynab_filename = c.YNAB_FILENAME_PREFIX + new_csv
 
         with open(ynab_filename, 'w', encoding='utf-8') as converted_file:
@@ -26,9 +28,6 @@ class AccountParser(AbstractAccountParser):
     NUMER_KONTA_COL = 4
     AMOUNT_COL = 5
 
-    def __init__(self, input_csv):
-        super().__init__(input_csv)
-
     def convert_csv(self, input_csv, ignore_param):
 
         with open(self.input_csv, 'r', encoding='cp1250') as csv_file:
@@ -39,8 +38,8 @@ class AccountParser(AbstractAccountParser):
                 new_row = self.convert_row(row)
 
                 if (ignore_param and
-                    new_row[self.OPIS_OPERACJI_COL] == c.INTERNAL_INCOMING and
-                    c.OWNER in new_row[self.PAYEE_COL]):
+                        new_row[self.OPIS_OPERACJI_COL] == c.INTERNAL_INCOMING and
+                        c.OWNER in new_row[self.PAYEE_COL]):
                     continue
                 self.add_selected_cols_from_row_to_list(new_row, transactions_list)
 
@@ -84,7 +83,8 @@ class AccountParser(AbstractAccountParser):
             row[self.MEMO_COL] = row[self.MEMO_COL] + row[self.NUMER_KONTA_COL]
 
     def rename_internal_transfer(self, row, account):
-        if c.INTERNAL_TRANSFER in row[self.OPIS_OPERACJI_COL] and (account["id"] in row[self.NUMER_KONTA_COL]):
+        if (c.INTERNAL_TRANSFER in row[self.OPIS_OPERACJI_COL] and
+                account["id"] in row[self.NUMER_KONTA_COL]):
             row[self.PAYEE_COL] = 'Transfer: {}'.format(account["name"])
 
     def rename_regularne_oszczedzanie(self, row, account):
@@ -115,9 +115,6 @@ class CreditCardParser(AccountParser):
     MEMO_COL = 3
     PAYEE_COL = 4
     AMOUNT_COL = 7
-
-    def __init__(self, input_csv):
-        super().__init__(input_csv)
 
     def convert_csv(self, input_csv, ignore_param):
 
