@@ -29,6 +29,7 @@ available options:
 ## Planned improvements
 - maybe some screaming capslocked values for fields that don't have something relevant
 - tests
+- support for files from directory different than the one of the script
 
 ## Changelog
 PR 3
