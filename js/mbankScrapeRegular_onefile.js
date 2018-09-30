@@ -145,10 +145,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("WPŁATA")) {
       arr.push(
         [
-          wplata.date_col,
-          wplata.memo_col.replace(/,/g, " "),
-          wplata.payee_col,
-          wplata.amount_col.slice(0, -4).replace(/,/g, ".")
+          wplata.toArray()
         ]
       );
     }
