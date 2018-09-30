@@ -97,10 +97,7 @@ class AccountHistoryScraper {
       if (! [emax, ekonto, emaxplus].includes(incoming.nadawca) ) {
         arr.push(
           [
-            incoming.date_col,
-            incoming.memo_col.replace(/,/g, " "),
-            incoming.payee_col.replace(/,/g, " "),
-            incoming.amount_col.slice(0, -4).replace(/,/g, ".")
+            incoming.toArray()
           ]
         );
       } else {
