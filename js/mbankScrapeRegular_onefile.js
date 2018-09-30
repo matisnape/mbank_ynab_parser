@@ -31,14 +31,10 @@ class AccountHistoryScraper {
 
   saveDetailsForCSV(arr) {
     const MEMO_COL = this.getElementByXpath("//tr[th[contains(text(), 'Rodzaj operacji')]]/td").innerHTML;
-
     if (MEMO_COL == "PRZELEW REGULARNE OSZCZĘDZANIE") {
       arr.push(
         [
-          regularne.date_col,
-          "",
-          regularne.payee_col,
-          "-" + regularne.amount_col.slice(0, -4).replace(/,/g, ".")
+          regularne.toArray()
         ]
       );
     }
@@ -224,7 +220,7 @@ class AccountHistoryScraper {
     for (let transactionEl of transactionsArr) {
       // 1. open each transaction to enable selectors
       this.openTransactionDetails(transactionEl);
-      await this.wait(2000);
+      await this.wait(5000);
       // 2. save data to arr
       this.saveDetailsForCSV(arr);
       await this.wait(1200);
@@ -268,6 +264,13 @@ class RegularneOszczedzanie extends Transakcja {
   }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
+  }
+
+  toArray() {
+    this.date_col,
+    "",
+    this.payee_col,
+    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 
