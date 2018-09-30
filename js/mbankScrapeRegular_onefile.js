@@ -41,10 +41,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL == "ZAKUP PRZY UŻYCIU KARTY") {
       arr.push(
         [
-          karta.date_col,
-          MEMO_COL.replace(/,/g, " "),
-          karta.payee_col.replace(/,/g, " "),
-          karta.amount_col.slice(0, -4).replace(/,/g, ".")
+          karta.toArray()
         ]
       );
     }
@@ -280,6 +277,13 @@ class ZakupKarta extends Transakcja {
   }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data rozliczenia')]]/td").innerHTML;
+  }
+
+  toArray() {
+    this.date_col,
+    this.memo_col.replace(/,/g, " "),
+    this.payee_col.replace(/,/g, " "),
+    this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 
