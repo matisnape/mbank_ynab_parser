@@ -124,10 +124,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("PODATEK")) {
       arr.push(
         [
-          podatek.date_col,
-          podatek.memo_col.replace(/,/g, " "),
-          podatek.payee_col.replace(/,/g, " "),
-          "-" + podatek.amount_col.slice(0, -4).replace(/,/g, ".")
+          podatek.toArray()
         ]
       );
     }
@@ -381,6 +378,13 @@ class Mokazje extends Transakcja {
 class Podatek extends Transakcja {
   get payee_col() {
     return "Podatek od odsetek";
+  }
+
+  toArray() {
+    this.date_col,
+    this.memo_col.replace(/,/g, " "),
+    this.payee_col.replace(/,/g, " "),
+    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 class Kapitalizacja extends Transakcja {
