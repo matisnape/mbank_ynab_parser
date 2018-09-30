@@ -131,10 +131,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("KAPITALIZACJA")) {
       arr.push(
         [
-          kapitalizacja.date_col,
-          kapitalizacja.memo_col.replace(/,/g, " "),
-          kapitalizacja.payee_col,
-          kapitalizacja.amount_col.slice(0, -4).replace(/,/g, ".")
+          kapitalizacja.toArray()
         ]
       );
     }
