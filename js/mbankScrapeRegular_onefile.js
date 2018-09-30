@@ -74,10 +74,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("PROWIZJA")) {
       arr.push(
         [
-          prowizja.date_col,
-          "",
-          MEMO_COL.replace(/,/g, " "),
-          prowizja.amount_col.slice(0, -4).replace(/,/g, ".")
+          prowizja.toArray()
         ]
       );
     }
@@ -318,6 +315,13 @@ class PrzelewWlasny extends Transakcja {
 class Prowizja extends Transakcja {
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data rozliczenia')]]/td").innerHTML;
+  }
+
+  toArray() {
+    this.date_col,
+    "",
+    this.memo_col.replace(/,/g, " "),
+    this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 class Mtransfer extends Transakcja {
