@@ -126,7 +126,7 @@ class AccountHistoryScraper {
           ]
         );
       } else {
-        console.log("Ignored incoming from own account: " + incoming.amount_col + " (" + incoming.date_col + ")")
+        console.log("Ignored incoming from own account: " + incoming.amount_col + " (" + incoming.date_col + ")");
       }
     }
     else if (MEMO_COL.includes("WYCHODZĄCY") && ! MEMO_COL.includes("MTRANSFER") ) {
@@ -240,6 +240,10 @@ class AccountHistoryScraper {
 }
 
 class Transakcja {
+  get amount_col() {
+    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
+  }
+
   get memo_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Rodzaj operacji')]]/td").innerHTML;
   }
@@ -250,9 +254,6 @@ class Transakcja {
 }
 
 class RegularneOszczedzanie extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return "Transfer: Regularne Oszczedzanie";
   }
@@ -262,9 +263,6 @@ class RegularneOszczedzanie extends Transakcja {
 }
 
 class ZakupKarta extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota w walucie rachunku')]]/td").innerHTML;
-  }
   get payee_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Nazwa odbiorcy')]]/td").innerHTML;
   }
@@ -274,9 +272,6 @@ class ZakupKarta extends Transakcja {
 }
 
 class SplataKarty extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return "Payment: kredytówka";
   }
@@ -289,9 +284,6 @@ class PrzelewWlasny extends Transakcja {
   get odbiorca() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Rachunek odbiorcy')]]/td").innerHTML;
   }
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   payee_col(account) {
     return "Transfer: " + account;
   }
@@ -300,17 +292,11 @@ class PrzelewWlasny extends Transakcja {
   }
 }
 class Prowizja extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota w walucie rachunku')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data rozliczenia')]]/td").innerHTML;
   }
 }
 class Mtransfer extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
   }
@@ -322,9 +308,6 @@ class Mtransfer extends Transakcja {
   }
 }
 class Blik extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota w walucie rachunku')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
   }
@@ -336,9 +319,6 @@ class Blik extends Transakcja {
   }
 }
 class PrzelewWychodzacy extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
   }
@@ -353,9 +333,6 @@ class PrzelewWychodzacy extends Transakcja {
   }
 }
 class PrzelewPrzychodzacy extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
   }
@@ -370,9 +347,6 @@ class PrzelewPrzychodzacy extends Transakcja {
   }
 }
 class Mokazje extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
   }
@@ -384,9 +358,6 @@ class Mokazje extends Transakcja {
   }
 }
 class Podatek extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
   }
@@ -395,9 +366,6 @@ class Podatek extends Transakcja {
   }
 }
 class Kapitalizacja extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
   }
@@ -406,9 +374,6 @@ class Kapitalizacja extends Transakcja {
   }
 }
 class Wyplata extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota w walucie rachunku')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
   }
@@ -417,9 +382,6 @@ class Wyplata extends Transakcja {
   }
 }
 class Wplata extends Transakcja {
-  get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
-  }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
   }
