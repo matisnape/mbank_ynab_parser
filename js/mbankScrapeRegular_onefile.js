@@ -138,10 +138,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("WYPŁATA")) {
       arr.push(
         [
-          wyplata.date_col,
-          wyplata.memo_col.replace(/,/g, " "),
-          wyplata.payee_col,
-          wyplata.amount_col.slice(0, -4).replace(/,/g, ".")
+          wyplata.toArray()
         ]
       );
     }
