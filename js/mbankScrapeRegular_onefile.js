@@ -110,10 +110,7 @@ class AccountHistoryScraper {
       }
       arr.push(
         [
-          outgoing.date_col,
-          outgoing.memo_col.replace(/,/g, " "),
-          outgoing.payee_col().replace(/,/g, " "),
-          "-" + outgoing.amount_col.slice(0, -4).replace(/,/g, ".")
+          outgoing.toArray()
         ]
       );
     }
@@ -356,6 +353,13 @@ class PrzelewWychodzacy extends Transakcja {
   }
   get rachunek_odbiorcy() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Rachunek odbiorcy')]]/td").innerHTML;
+  }
+
+  toArray() {
+    this.date_col,
+    this.memo_col.replace(/,/g, " "),
+    this.payee_col().replace(/,/g, " "),
+    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 class PrzelewPrzychodzacy extends Transakcja {
