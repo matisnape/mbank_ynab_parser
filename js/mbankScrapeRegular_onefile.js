@@ -117,10 +117,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("MOKAZJE")) {
       arr.push(
         [
-          mokazje.date_col,
-          mokazje.memo_col.replace(/,/g, " "),
-          mokazje.payee_col.replace(/,/g, " "),
-          mokazje.amount_col.slice(0, -4).replace(/,/g, ".")
+          mokazje.toArray()
         ]
       );
     }
