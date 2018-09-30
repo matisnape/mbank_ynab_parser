@@ -81,10 +81,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("MTRANSFER")) {
       arr.push(
         [
-          mtransfer.date_col,
-          mtransfer.memo_col.replace(/,/g, " "),
-          mtransfer.payee_col.replace(/,/g, " "),
-          "-" + mtransfer.amount_col.slice(0, -4).replace(/,/g, ".")
+          mtransfer.toArray()
         ]
       );
     }
@@ -333,6 +330,13 @@ class Mtransfer extends Transakcja {
   }
   get memo_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Tytuł przelewu')]]/td").innerHTML;
+  }
+
+  toArray() {
+    this.date_col,
+    this.memo_col.replace(/,/g, " "),
+    this.payee_col.replace(/,/g, " "),
+    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 class Blik extends Transakcja {
