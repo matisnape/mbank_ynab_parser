@@ -48,10 +48,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("SPŁATA KARTY")) {
       arr.push(
         [
-          splatakarty.date_col,
-          "",
-          splatakarty.payee_col,
-          "-" + splatakarty.amount_col.slice(0, -4).replace(/,/g, ".")
+          splatakarty.toArray()
         ]
       );
     }
@@ -293,6 +290,13 @@ class SplataKarty extends Transakcja {
   }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
+  }
+
+  toArray() {
+    this.date_col,
+    "",
+    this.payee_col,
+    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 
