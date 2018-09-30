@@ -32,25 +32,13 @@ class AccountHistoryScraper {
   saveDetailsForCSV(arr) {
     const MEMO_COL = this.getElementByXpath("//tr[th[contains(text(), 'Rodzaj operacji')]]/td").innerHTML;
     if (MEMO_COL == "PRZELEW REGULARNE OSZCZĘDZANIE") {
-      arr.push(
-        [
-          regularne.toArray()
-        ]
-      );
+      arr.push(regularne.toArray());
     }
     else if (MEMO_COL == "ZAKUP PRZY UŻYCIU KARTY") {
-      arr.push(
-        [
-          karta.toArray()
-        ]
-      );
+      arr.push(karta.toArray());
     }
     else if (MEMO_COL.includes("SPŁATA KARTY")) {
-      arr.push(
-        [
-          splatakarty.toArray()
-        ]
-      );
+      arr.push(splatakarty.toArray());
     }
     else if (MEMO_COL == "PRZELEW WŁASNY") {
       let account;
@@ -65,41 +53,21 @@ class AccountHistoryScraper {
           account = "ekonto";
           break;
       }
-      arr.push(
-        [
-          przelewwlasny.toArray(account)
-        ]
-      );
+      arr.push(przelewwlasny.toArray(account));
     }
     else if (MEMO_COL.includes("PROWIZJA")) {
-      arr.push(
-        [
-          prowizja.toArray()
-        ]
-      );
+      arr.push(prowizja.toArray());
     }
     else if (MEMO_COL.includes("MTRANSFER")) {
-      arr.push(
-        [
-          mtransfer.toArray()
-        ]
-      );
+      arr.push(mtransfer.toArray());
     }
     else if (MEMO_COL.includes("BLIK - ZAKUP")) {
-      arr.push(
-        [
-          blik.toArray()
-        ]
-      );
+      arr.push(blik.toArray());
     }
     else if (MEMO_COL.includes("PRZYCHODZĄCY")) {
       // ignore incoming from own accounts
       if (! [emax, ekonto, emaxplus].includes(incoming.nadawca) ) {
-        arr.push(
-          [
-            incoming.toArray()
-          ]
-        );
+        arr.push(incoming.toArray());
       } else {
         console.log("Ignored incoming from own account: " + incoming.amount_col + " (" + incoming.date_col + ")");
       }
@@ -108,46 +76,22 @@ class AccountHistoryScraper {
       if (outgoing.rachunek_odbiorcy == lokaty) {
         outgoing.payee_col = "Transfer to: Lokaty";
       }
-      arr.push(
-        [
-          outgoing.toArray()
-        ]
-      );
+      arr.push(outgoing.toArray());
     }
     else if (MEMO_COL.includes("MOKAZJE")) {
-      arr.push(
-        [
-          mokazje.toArray()
-        ]
-      );
+      arr.push(mokazje.toArray());
     }
     else if (MEMO_COL.includes("PODATEK")) {
-      arr.push(
-        [
-          podatek.toArray()
-        ]
-      );
+      arr.push(podatek.toArray());
     }
     else if (MEMO_COL.includes("KAPITALIZACJA")) {
-      arr.push(
-        [
-          kapitalizacja.toArray()
-        ]
-      );
+      arr.push(kapitalizacja.toArray());
     }
     else if (MEMO_COL.includes("WYPŁATA")) {
-      arr.push(
-        [
-          wyplata.toArray()
-        ]
-      );
+      arr.push(wyplata.toArray());
     }
     else if (MEMO_COL.includes("WPŁATA")) {
-      arr.push(
-        [
-          wplata.toArray()
-        ]
-      );
+      arr.push(wplata.toArray());
     }
     else {
       this.n+=1;
@@ -215,10 +159,12 @@ class Transakcja {
   }
 
   toArray() {
-    this.date_col,
-    this.memo_col.replace(/,/g, " "),
-    this.payee_col.replace(/,/g, " "),
-    this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      this.memo_col.replace(/,/g, " "),
+      this.payee_col.replace(/,/g, " "),
+      this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 
@@ -231,10 +177,12 @@ class RegularneOszczedzanie extends Transakcja {
   }
 
   toArray() {
-    this.date_col,
-    "",
-    this.payee_col,
-    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      "",
+      this.payee_col,
+      "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 
@@ -244,13 +192,6 @@ class ZakupKarta extends Transakcja {
   }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data rozliczenia')]]/td").innerHTML;
-  }
-
-  toArray() {
-    this.date_col,
-    this.memo_col.replace(/,/g, " "),
-    this.payee_col.replace(/,/g, " "),
-    this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 
@@ -263,10 +204,12 @@ class SplataKarty extends Transakcja {
   }
 
   toArray() {
-    this.date_col,
-    "",
-    this.payee_col,
-    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      "",
+      this.payee_col,
+      "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 
@@ -282,10 +225,12 @@ class PrzelewWlasny extends Transakcja {
   }
 
   toArray(account) {
-    this.date_col,
-    this.memo_col.replace(/,/g, " "),
-    this.payee_col(account),
-    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      this.memo_col.replace(/,/g, " "),
+      this.payee_col(account),
+      "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 class Prowizja extends Transakcja {
@@ -294,10 +239,12 @@ class Prowizja extends Transakcja {
   }
 
   toArray() {
-    this.date_col,
-    "",
-    this.memo_col.replace(/,/g, " "),
-    this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      "",
+      this.memo_col.replace(/,/g, " "),
+      this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 class Mtransfer extends Transakcja {
@@ -312,10 +259,12 @@ class Mtransfer extends Transakcja {
   }
 
   toArray() {
-    this.date_col,
-    this.memo_col.replace(/,/g, " "),
-    this.payee_col.replace(/,/g, " "),
-    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      this.memo_col.replace(/,/g, " "),
+      this.payee_col.replace(/,/g, " "),
+      "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 class Blik extends Transakcja {
@@ -341,10 +290,12 @@ class PrzelewWychodzacy extends Transakcja {
   }
 
   toArray() {
-    this.date_col,
-    this.memo_col.replace(/,/g, " "),
-    this.payee_col().replace(/,/g, " "),
-    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      this.memo_col.replace(/,/g, " "),
+      this.payee_col().replace(/,/g, " "),
+      "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 class PrzelewPrzychodzacy extends Transakcja {
@@ -372,10 +323,12 @@ class Podatek extends Transakcja {
   }
 
   toArray() {
-    this.date_col,
-    this.memo_col.replace(/,/g, " "),
-    this.payee_col.replace(/,/g, " "),
-    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
+    return [
+      this.date_col,
+      this.memo_col.replace(/,/g, " "),
+      this.payee_col.replace(/,/g, " "),
+      "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
+    ];
   }
 }
 class Kapitalizacja extends Transakcja {
