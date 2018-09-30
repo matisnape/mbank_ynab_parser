@@ -240,10 +240,12 @@ class AccountHistoryScraper {
 }
 
 class Transakcja {
+  get date_col() {
+    return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
+  }
   get amount_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
   }
-
   get memo_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Rodzaj operacji')]]/td").innerHTML;
   }
@@ -308,9 +310,6 @@ class Mtransfer extends Transakcja {
   }
 }
 class Blik extends Transakcja {
-  get date_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Nazwa sklepu internetowego')]]/td").innerHTML;
   }
@@ -333,9 +332,6 @@ class PrzelewWychodzacy extends Transakcja {
   }
 }
 class PrzelewPrzychodzacy extends Transakcja {
-  get date_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Nazwa nadawcy')]]/td").innerHTML;
   }
@@ -347,9 +343,6 @@ class PrzelewPrzychodzacy extends Transakcja {
   }
 }
 class Mokazje extends Transakcja {
-  get date_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return "Mokazje";
   }
@@ -358,25 +351,16 @@ class Mokazje extends Transakcja {
   }
 }
 class Podatek extends Transakcja {
-  get date_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return "Podatek od odsetek";
   }
 }
 class Kapitalizacja extends Transakcja {
-  get date_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return "Kapitalizacja odsetek";
   }
 }
 class Wyplata extends Transakcja {
-  get date_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
-  }
   get payee_col() {
     return "Transfer: Gotówka";
   }
