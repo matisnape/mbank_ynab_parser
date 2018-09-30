@@ -107,10 +107,7 @@ class AccountHistoryScraper {
     else if (MEMO_COL.includes("BLIK - ZAKUP")) {
       arr.push(
         [
-          blik.date_col,
-          blik.memo_col.replace(/,/g, " "),
-          blik.payee_col.replace(/,/g, " "),
-          blik.amount_col.slice(0, -4).replace(/,/g, ".")
+          blik.toArray()
         ]
       );
     }
@@ -227,11 +224,11 @@ class AccountHistoryScraper {
     for (let transactionEl of transactionsArr) {
       // 1. open each transaction to enable selectors
       this.openTransactionDetails(transactionEl);
-      await this.wait(1000);
+      await this.wait(2000);
       // 2. save data to arr
       this.saveDetailsForCSV(arr);
       await this.wait(1200);
-    };
+    }
     await this.wait(1200);
     // 3. initialize CSV format and append content
     this.parseToCSVAndSaveFile(arr);
@@ -244,14 +241,24 @@ class Transakcja {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data operacji')]]/td").innerHTML;
   }
   get amount_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota operacji')]]/td").innerHTML;
+    return this.getElementByXpath("//tr[th[contains(text(), 'Kwota w walucie rachunku') or contains(text(), 'Kwota operacji')]]/td").innerHTML;
   }
   get memo_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Rodzaj operacji')]]/td").innerHTML;
   }
+  get payee_col() {
+    return this.getElementByXpath("//tr[th[contains(text(), 'Nazwa odbiorcy')]]/td").innerHTML;
+  }
 
   getElementByXpath(path) {
     return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+  }
+
+  toArray() {
+    this.date_col,
+    this.memo_col.replace(/,/g, " "),
+    this.payee_col.replace(/,/g, " "),
+    this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 
