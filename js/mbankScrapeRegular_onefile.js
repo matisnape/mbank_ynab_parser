@@ -67,10 +67,7 @@ class AccountHistoryScraper {
       }
       arr.push(
         [
-          przelewwlasny.date_col,
-          MEMO_COL.replace(/,/g, " "),
-          przelewwlasny.payee_col(account),
-          "-" + przelewwlasny.amount_col.slice(0, -4).replace(/,/g, ".")
+          przelewwlasny.toArray(account)
         ]
       );
     }
@@ -309,6 +306,13 @@ class PrzelewWlasny extends Transakcja {
   }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
+  }
+
+  toArray(account) {
+    this.date_col,
+    this.memo_col.replace(/,/g, " "),
+    this.payee_col(account),
+    "-" + this.amount_col.slice(0, -4).replace(/,/g, ".");
   }
 }
 class Prowizja extends Transakcja {
