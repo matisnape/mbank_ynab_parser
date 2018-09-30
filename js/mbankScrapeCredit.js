@@ -29,7 +29,7 @@ class CreditHistoryScraper {
         PAYEE_COL.replace(/,/g, ' '),
         AMOUNT_COL.slice(0, -4).replace(/,/g, '.')
       ]
-    )
+    );
   }
 
   parseToCSVAndSaveFile(arr) {
@@ -47,7 +47,7 @@ class CreditHistoryScraper {
 
   wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  };
+  }
 
   getElementByXpath(path) {
     return document.evaluate(path, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
@@ -65,7 +65,7 @@ class CreditHistoryScraper {
       // 2. save data to arr
       this.saveDetailsForCSV(arr);
       await this.wait(1000);
-    };
+    }
     await this.wait(1000);
     // 3. initialize CSV format and append content
     this.parseToCSVAndSaveFile(arr);
