@@ -29,74 +29,60 @@ class AccountHistoryScraper {
     transactionEl.click();
   }
 
-  saveDetailsForCSV(arr) {
+  getTransaction() {
     const MEMO_COL = this.getElementByXpath("//tr[th[contains(text(), 'Rodzaj operacji')]]/td").innerHTML;
+
     if (MEMO_COL == "PRZELEW REGULARNE OSZCZĘDZANIE") {
-      arr.push(regularne.toArray());
+      return new RegularneOszczedzanie();
     }
     else if (MEMO_COL == "ZAKUP PRZY UŻYCIU KARTY") {
-      arr.push(karta.toArray());
+      return new ZakupKarta();
     }
     else if (MEMO_COL.includes("SPŁATA KARTY")) {
-      arr.push(splatakarty.toArray());
+      return new SplataKarty();
     }
     else if (MEMO_COL == "PRZELEW WŁASNY") {
-      let account;
-      switch(przelewwlasny.odbiorca) {
-        case emax:
-          account = "emax";
-          break;
-        case emaxplus:
-          account = "emaxplus";
-          break;
-        case ekonto:
-          account = "ekonto";
-          break;
-      }
-      arr.push(przelewwlasny.toArray(account));
+      return new PrzelewWlasny();
     }
     else if (MEMO_COL.includes("PROWIZJA")) {
-      arr.push(prowizja.toArray());
+      return new Prowizja();
     }
     else if (MEMO_COL.includes("MTRANSFER")) {
-      arr.push(mtransfer.toArray());
+      return new Mtransfer;
     }
     else if (MEMO_COL.includes("BLIK - ZAKUP")) {
-      arr.push(blik.toArray());
+      return new Blik();
     }
     else if (MEMO_COL.includes("PRZYCHODZĄCY")) {
-      // ignore incoming from own accounts
-      if (! [emax, ekonto, emaxplus].includes(incoming.nadawca) ) {
-        arr.push(incoming.toArray());
-      } else {
-        console.log("Ignored incoming from own account: " + incoming.amount_col + " (" + incoming.date_col + ")");
-      }
+      return new PrzelewPrzychodzacy();
     }
     else if (MEMO_COL.includes("WYCHODZĄCY") && ! MEMO_COL.includes("MTRANSFER") ) {
-      if (outgoing.rachunek_odbiorcy == lokaty) {
-        outgoing.payee_col = "Transfer to: Lokaty";
-      }
-      arr.push(outgoing.toArray());
+      return new PrzelewWychodzacy();
     }
     else if (MEMO_COL.includes("MOKAZJE")) {
-      arr.push(mokazje.toArray());
+      return new Mokazje();
     }
     else if (MEMO_COL.includes("PODATEK")) {
-      arr.push(podatek.toArray());
+      return new Podatek();
     }
     else if (MEMO_COL.includes("KAPITALIZACJA")) {
-      arr.push(kapitalizacja.toArray());
+      return new Kapitalizacja();
     }
     else if (MEMO_COL.includes("WYPŁATA")) {
-      arr.push(wyplata.toArray());
+      return new Wyplata();
     }
     else if (MEMO_COL.includes("WPŁATA")) {
-      arr.push(wplata.toArray());
+      return new Wplata();
     }
     else {
       this.n+=1;
       console.log(this.n + ". Didn't recognize: " + MEMO_COL);
+      return "Undefined";
     }
+  }
+
+  saveDetailsForCSV(arr) {
+    arr.push(this.getTransaction(MEMO_COL).toArray());
   }
 
   parseToCSVAndSaveFile(arr) {
@@ -215,20 +201,29 @@ class SplataKarty extends Transakcja {
 
 class PrzelewWlasny extends Transakcja {
   get odbiorca() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Rachunek odbiorcy')]]/td").innerHTML;
+    let rachunek_odbiorcy = this.getElementByXpath("//tr[th[contains(text(), 'Rachunek odbiorcy')]]/td").innerHTML;
+    switch(rachunek_odbiorcy) {
+      case emax:
+        return "emax";
+      case emaxplus:
+        return "emaxplus";
+      case ekonto:
+        return "ekonto";
+    }
+    return "undefined odbiorca";
   }
-  payee_col(account) {
-    return "Transfer: " + account;
+  get payee_col() {
+    return "Transfer: " + this.odbiorca;
   }
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
   }
 
-  toArray(account) {
+  toArray() {
     return [
       this.date_col,
       this.memo_col.replace(/,/g, " "),
-      this.payee_col(account),
+      this.payee_col,
       "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
     ];
   }
@@ -279,8 +274,12 @@ class PrzelewWychodzacy extends Transakcja {
   get date_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Data księgowania')]]/td").innerHTML;
   }
-  payee_col() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Nazwa odbiorcy')]]/td").innerHTML;
+  get payee_col() {
+    let rachunek_odbiorcy = this.getElementByXpath("//tr[th[contains(text(), 'Nazwa odbiorcy')]]/td").innerHTML;
+    if (rachunek_odbiorcy == lokaty) {
+      return "Transfer to: Lokaty";
+    }
+    return rachunek_odbiorcy;
   }
   get memo_col() {
     return this.getElementByXpath("//tr[th[contains(text(), 'Tytuł przelewu')]]/td").innerHTML;
@@ -293,7 +292,7 @@ class PrzelewWychodzacy extends Transakcja {
     return [
       this.date_col,
       this.memo_col.replace(/,/g, " "),
-      this.payee_col().replace(/,/g, " "),
+      this.payee_col.replace(/,/g, " "),
       "-" + this.amount_col.slice(0, -4).replace(/,/g, ".")
     ];
   }
@@ -306,7 +305,11 @@ class PrzelewPrzychodzacy extends Transakcja {
     return this.getElementByXpath("//tr[th[contains(text(), 'Tytuł przelewu')]]/td").innerHTML;
   }
   get nadawca() {
-    return this.getElementByXpath("//tr[th[contains(text(), 'Rachunek nadawcy')]]/td").innerHTML;
+    let rachunek_nadawcy = this.getElementByXpath("//tr[th[contains(text(), 'Rachunek nadawcy')]]/td").innerHTML;
+    if (! [emax, ekonto, emaxplus].includes(rachunek_nadawcy) ) {
+      return rachunek_nadawcy;
+    }
+    return console.log("Ignored incoming from own account: " + this.amount_col + " (" + this.date_col + ")");
   }
 }
 class Mokazje extends Transakcja {
