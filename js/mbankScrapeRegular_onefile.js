@@ -76,8 +76,7 @@ class AccountHistoryScraper {
     }
     else {
       this.n+=1;
-      console.log(this.n + ". Didn't recognize: " + MEMO_COL);
-      return "Undefined";
+      return console.log(this.n + ". Didn't recognize: " + MEMO_COL);
     }
   }
 
