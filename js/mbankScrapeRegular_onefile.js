@@ -82,7 +82,7 @@ class AccountHistoryScraper {
   }
 
   saveDetailsForCSV(arr) {
-    arr.push(this.getTransaction(MEMO_COL).toArray());
+    arr.push(this.getTransaction().toArray());
   }
 
   parseToCSVAndSaveFile(arr) {
