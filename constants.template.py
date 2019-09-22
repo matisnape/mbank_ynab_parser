@@ -22,5 +22,5 @@ OWNER = 'your name on you accounts'
 KONTO_1 = {"id": '11111111111111111111111111', "name": 'konto1'}
 KONTO_2 = {"id": '11111111111111111111111111', "name": 'konto2'}
 KONTO_3 = {"id": '11111111111111111111111111', "name": 'konto3'}
-KONTO_REGULARNE = {"id": 'PRZELEW REGULARNE OSZCZ', "name": 'Regularne Oszczędzanie'}
+KONTO_REGULARNE = {"id": 'PRZELEW NA TWOJE CELE', "name": 'Regularne Oszczędzanie'}
 KARTA = {"id": 'KARTA VISA CLASSIC CREDIT', "name": 'karta kredytowaK'}
