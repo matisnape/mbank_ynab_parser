@@ -64,9 +64,13 @@ class AccountParser(AbstractAccountParser):
         # if Payee empty, move Memo there
         self.populate_payee_if_empty(new_row)
         # transfer to accounts
-        self.rename_internal_transfer(new_row, c.KONTO_1)
-        self.rename_internal_transfer(new_row, c.KONTO_2)
-        self.rename_internal_transfer(new_row, c.KONTO_3)
+        self.rename_internal_transfer(new_row, c.EKONTO)
+        self.rename_internal_transfer(new_row, c.EKONTO2)
+        self.rename_internal_transfer(new_row, c.EKONTO3)
+        self.rename_internal_transfer(new_row, c.EMAX)
+        self.rename_internal_transfer(new_row, c.EMAX_PLUS)
+        self.rename_internal_transfer(new_row, c.DG)
+        self.rename_internal_transfer(new_row, c.LOKATY)
 
         return new_row
 
