@@ -1,3 +1,4 @@
+import pdb
 import csv
 import constants as c
 
@@ -33,7 +34,6 @@ class AccountParser(AbstractAccountParser):
         with open(self.input_csv, 'r', encoding='cp1250') as csv_file:
             csv_rows = csv_file.readlines()[38:-5]
             transactions_list = [c.YNAB_HEADERS]
-
             for row in csv_rows:
                 new_row = self.convert_row(row)
 
@@ -70,7 +70,7 @@ class AccountParser(AbstractAccountParser):
         self.rename_internal_transfer(new_row, c.EMAX)
         self.rename_internal_transfer(new_row, c.EMAX_PLUS)
         self.rename_internal_transfer(new_row, c.DG)
-        self.rename_internal_transfer(new_row, c.LOKATY)
+        # self.rename_internal_transfer(new_row, c.LOKATY)
 
         return new_row
 
@@ -87,7 +87,7 @@ class AccountParser(AbstractAccountParser):
             row[self.MEMO_COL] = row[self.MEMO_COL] + row[self.NUMER_KONTA_COL]
 
     def rename_internal_transfer(self, row, account):
-        if (c.INTERNAL_TRANSFER in row[self.OPIS_OPERACJI_COL] and
+        if ((c.INTERNAL_TRANSFER or c.INTERNAL_INCOMING in row[self.OPIS_OPERACJI_COL]) and
                 account["id"] in row[self.NUMER_KONTA_COL]):
             row[self.PAYEE_COL] = 'Transfer: {}'.format(account["name"])
 
