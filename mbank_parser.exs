@@ -3,18 +3,16 @@ Mix.install(
     {:csv, "~> 3.0"},
     {:erlyconv, github: "eugenehr/erlyconv"}
   ],
-  config: [],
-  # force: true,
   verbose: true
 )
 
 defmodule MbankParser do
   @moduledoc """
-  Parses an mbank CSV file and saves a processed version of the file in UTF-8 format.
+  Parses an mBank CSV file and saves a processed version of the file
 
   ## Examples
 
-      iex> MbankParser.parse("example.csv")
+      iex> MbankParser.process("example.csv")
 
   """
 
@@ -30,86 +28,43 @@ defmodule MbankParser do
   ]
   """
 
-  @ynab_headers ~w(DATE MEMO PAYEE AMOUNT)
-  @ynab_delimiter ","
+  @ynab_headers ~w(date memo payee amount)a
   @ynab_filename_prefix "YNAB_ready_"
 
-  # def process(file_path) do
-  #   file_path
-  #   |> File.read([:line, :raw, :utf8], :utf8)
-  #   |> String.split("\n") |> Enum.drop(38) |> Enum.drop_last(5)
-  #   output_file_name = "YNAB_ready_#{File.basename(file_path)}"
-  #   CSV.write(output_file_name, [%{@headers}], write_headers: true, encoding: "utf-8")
-  #   CSV.append(output_file_name, lines, write_headers: false, encoding: "utf-8")
-  # end
-
-  def parse(file_path) do
+  def process(file_path) do
     file_path
     |> File.stream!()
     |> drop_metadata()
-    |> Stream.each(fn item ->
-      # Why there's a bitstring and not a string
-      :erlyconv.to_unicode(:cp1250, item)
-      |> IO.inspect()
-      |> prepare()
-    end)
-    # |> CSV.encode(headers: @ynab_headers, separators: [",", ";"])
+    |> CSV.decode!(separator: ?;, field_transform: &to_unicode/1)
+    |> Stream.map(&serialize(&1))
+    |> CSV.encode(
+      headers: @ynab_headers,
+      separator: ?,,
+      delimeter: "\r\n"
+    )
     |> Enum.to_list()
-
-    # |> IO.inspect(label: "dropped")
-    # |> CSV.decode(headers: false, separators: [",", ";"])
-    # |> IO.inspect(label: "decoded")
-    # |> CSV.encode(headers: ["DATE", "MEMO", "PAYEE", "AMOUNT"], separators: [",", ";"])
-    # |> IO.inspect(label: "encoded")
-    # |> write_file(file_path)
+    |> write_file(file_path)
   end
 
   defp write_file(data, file_path) do
-    file_name = "YNAB_ready_" <> Path.basename(file_path)
+    file_name = @ynab_filename_prefix <> Path.basename(file_path)
     full_path = Path.join(Path.dirname(file_path), file_name)
-    File.write!(full_path, data, [:utf8])
+
+    File.write!(full_path, data)
   end
 
-  # def parse2(file_path) do
-  #   # input_file = File.read!(file_path, [:read, :binary], :utf8, :cp1250)
-
-  #   file_path
-  #   # Read the input file with cp1250 encoding
-  #   |> File.read!([:read, :binary], :utf8, :cp1250)
-  #   # Split the input file into lines and remove the first 38 and last 5 lines
-  #   |> drop_metadata()
-  #   # Join the processed lines with a newline character
-  #   |> Enum.join("\n")
-  #   |> IO.inspect()
-
-  #   # # Create the output file name with the YNAB_ready_ prefix
-  #   # output_file_name = "YNAB_ready_" <> File.basename(file_path)
-
-  #   # # Write the output file to the same location as the input file with UTF-8 encoding
-  #   # File.write!(
-  #   #   File.dirname(file_path) <> "/" <> output_file_name,
-  #   #   output_file,
-  #   #   [:write, :binary],
-  #   #   :utf8
-  #   # )
-  # end
-
-  defp prepare(row) do
-    [_, date, opis_operacji, memo, payee, numer_konta, amount, _, _] = String.split(row, ";")
-
-    %{date: date, memo: memo, payee: payee, amount: amount} =
-      %{
-        date: date,
-        opis_operacji: opis_operacji,
-        memo: sanitize(memo),
-        payee: sanitize(payee),
-        numer_konta: sanitize(numer_konta),
-        amount: format_amount(amount)
-      }
-      |> initial_transformation()
-      |> transform_operation()
-
-    [date, memo, payee, amount]
+  defp serialize([_, date, opis_operacji, memo, payee, numer_konta, amount, _, _]) do
+    %{
+      date: date,
+      opis_operacji: opis_operacji,
+      memo: sanitize(memo),
+      payee: sanitize(payee),
+      numer_konta: sanitize(numer_konta),
+      amount: format_amount(amount)
+    }
+    |> initial_transformation()
+    |> transform_operation()
+    |> Map.take([:date, :memo, :payee, :amount])
   end
 
   defp transform_operation(
@@ -129,6 +84,10 @@ defmodule MbankParser do
          %{opis_operacji: "PRZELEW REGULARNE OSZCZ", numer_konta: account_id} = transaction
        ) do
     transform_internal(transaction, account_id)
+  end
+
+  defp transform_operation(%{opis_operacji: "PRZELEW NA TWOJE CELE"} = transaction) do
+    transform_internal(transaction, transaction.opis_operacji)
   end
 
   defp transform_operation(
@@ -153,7 +112,7 @@ defmodule MbankParser do
 
   defp transform_internal(transaction, account_id) do
     accounts()
-    |> Enum.find(fn {key, value} -> String.contains?(account_id, value.id) end)
+    |> Enum.find(fn {_key, value} -> String.contains?(account_id, value.id) end)
     |> case do
       {_account, %{id: _, name: account_name}} ->
         Map.merge(transaction, %{payee: format_transfer(account_name)})
@@ -182,13 +141,21 @@ defmodule MbankParser do
     Map.merge(row, %{memo: "#{memo} #{numer_konta}"})
   end
 
-  defp accounts do
-    %{
-      ekonto: %{id: "", name: "Ekonto"}
-    }
-  end
+  # Prepare an enum of accounts to be used for mapping
+
+  # defp accounts do
+  #   %{
+  #     ekonto: %{id: "", name: "Ekonto"}
+  #   }
+  # end
+
+  defp accounts, do: %{}
 
   # Helpers
+
+  defp to_unicode(item) do
+    :erlyconv.to_unicode(:cp1250, item)
+  end
 
   defp drop_metadata(stream) do
     stream
@@ -218,4 +185,4 @@ defmodule MbankParser do
 end
 
 # Call the function with the provided file path
-MbankParser.parse(System.argv())
+MbankParser.process(System.argv())
