@@ -153,6 +153,7 @@ defmodule MbankParser do
 
   # Helpers
 
+  # CSV file is Windows-encoded, conversion is needed to keep the special characters
   defp to_unicode(item) do
     :erlyconv.to_unicode(:cp1250, item)
   end
