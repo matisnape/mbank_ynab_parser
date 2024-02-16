@@ -1,7 +1,7 @@
 Mix.install(
   [
     {:csv, "~> 3.0"},
-    {:erlyconv, github: "eugenehr/erlyconv"}
+    {:iconv, "~> 1.0.10"}
   ],
   verbose: true
 )
@@ -32,11 +32,23 @@ defmodule MbankParser do
   @ynab_filename_prefix "YNAB_ready_"
 
   def process(file_path) do
-    file_path
-    |> File.stream!()
+    file = file_path |> File.stream!()
+
+    account_id =
+      file
+      |> Stream.with_index()
+      |> Stream.filter(fn {_, index} -> index == 20 end)
+      |> Stream.map(fn {line, _} -> line end)
+      |> CSV.decode!(separator: ?;, field_transform: &to_unicode/1)
+      |> Enum.take(1)
+      |> List.first()
+      |> :unicode.characters_to_binary()
+      |> format_number()
+
+    file
     |> drop_metadata()
     |> CSV.decode!(separator: ?;, field_transform: &to_unicode/1)
-    |> Stream.map(&serialize(&1))
+    |> Stream.map(&serialize(account_id, &1))
     |> CSV.encode(
       headers: @ynab_headers,
       separator: ?,,
@@ -53,41 +65,42 @@ defmodule MbankParser do
     File.write!(full_path, data)
   end
 
-  defp serialize([_, date, opis_operacji, memo, payee, numer_konta, amount, _, _]) do
+  defp serialize(parent_account_id, transaction) do
+    [_, date, opis_operacji, memo, payee, numer_konta, amount, _, _] = transaction
+
     %{
       date: date,
       opis_operacji: opis_operacji,
       memo: sanitize(memo),
       payee: sanitize(payee),
       numer_konta: sanitize(numer_konta),
-      amount: format_amount(amount)
+      amount: format_number(amount)
     }
-    |> initial_transformation()
-    |> transform_operation()
+    |> prefill_fields()
+    |> transform_operation(parent_account_id)
     |> Map.take([:date, :memo, :payee, :amount])
   end
 
-  defp transform_operation(
-         %{opis_operacji: "PRZELEW WŁASNY", numer_konta: account_id} = transaction
-       ) do
-    transform_internal(transaction, account_id)
+  @internal_account_operations [
+    "PRZELEW WŁASNY",
+    "PRZELEW WEWNĘTRZNY PRZYCHODZĄCY",
+    "PRZELEW REGULARNE OSZCZ",
+    "PRZELEW NA TWOJE CELE"
+  ]
+
+  @interest_operations [
+    "KAPITALIZACJA ODSETEK",
+    "PODATEK OD ODSETEK KAPITAŁOWYCH"
+  ]
+
+  defp transform_operation(%{opis_operacji: opis_operacji} = transaction)
+       when opis_operacji in @internal_account_operations do
+    transform_internal(transaction, transaction.numer_konta)
   end
 
-  defp transform_operation(
-         %{opis_operacji: "PRZELEW WEWNĘTRZNY PRZYCHODZĄCY", numer_konta: account_id} =
-           transaction
-       ) do
-    transform_internal(transaction, account_id)
-  end
-
-  defp transform_operation(
-         %{opis_operacji: "PRZELEW REGULARNE OSZCZ", numer_konta: account_id} = transaction
-       ) do
-    transform_internal(transaction, account_id)
-  end
-
-  defp transform_operation(%{opis_operacji: "PRZELEW NA TWOJE CELE"} = transaction) do
-    transform_internal(transaction, transaction.opis_operacji)
+  defp transform_operation(%{opis_operacji: opis_operacji} = transaction)
+       when opis_operacji in @interest_operations do
+    Map.merge(transaction, %{payee: transaction.opis_operacji})
   end
 
   defp transform_operation(
@@ -98,14 +111,6 @@ defmodule MbankParser do
 
   defp transform_operation(%{opis_operacji: "ZAKUP PRZY UŻYCIU KARTY"} = transaction) do
     transaction
-  end
-
-  defp transform_operation(%{opis_operacji: "KAPITALIZACJA ODSETEK"} = transaction) do
-    Map.merge(transaction, %{payee: transaction.opis_operacji})
-  end
-
-  defp transform_operation(%{opis_operacji: "PODATEK OD ODSETEK KAPITAŁOWYCH"} = transaction) do
-    Map.merge(transaction, %{payee: transaction.opis_operacji})
   end
 
   defp transform_operation(transaction), do: transaction
@@ -123,25 +128,31 @@ defmodule MbankParser do
     end
   end
 
-  defp initial_transformation(transaction) do
+  defp prefill_fields(transaction) do
     transaction
     |> populate_payee_if_empty()
     |> merge_accountid_with_memo()
   end
 
-  defp populate_payee_if_empty(%{payee: "", memo: memo} = row) do
-    Map.merge(row, %{payee: memo, memo: ""})
+  defp populate_payee_if_empty(row) do
+    case row do
+      %{payee: "", memo: memo} -> Map.merge(row, %{payee: memo, memo: ""})
+      _ -> row
+    end
   end
 
-  defp populate_payee_if_empty(row), do: row
+  defp merge_accountid_with_memo(row) do
+    case row do
+      %{numer_konta: ""} ->
+        row
 
-  defp merge_accountid_with_memo(%{numer_konta: ""} = row), do: row
-
-  defp merge_accountid_with_memo(%{numer_konta: numer_konta, memo: memo} = row) do
-    Map.merge(row, %{memo: "#{memo} #{numer_konta}"})
+      %{numer_konta: numer_konta, memo: memo} ->
+        Map.merge(row, %{memo: "#{memo} #{numer_konta}"})
+    end
   end
 
-  # Prepare an enum of accounts to be used for mapping
+  # Prepare an enum of accounts to be used for mapping.
+  # The account name should be the same as in YNAB
 
   # defp accounts do
   #   %{
@@ -154,8 +165,14 @@ defmodule MbankParser do
   # Helpers
 
   # CSV file is Windows-encoded, conversion is needed to keep the special characters
+  # Check if https://hexdocs.pm/codepagex/Codepagex.html#encoding_list/1 would work
   defp to_unicode(item) do
-    :erlyconv.to_unicode(:cp1250, item)
+    :iconv.convert("CP1250", "UTF-8", item)
+  end
+
+  defp find_account_id(stream) do
+    stream
+    |> Enum.at(21)
   end
 
   defp drop_metadata(stream) do
@@ -164,10 +181,11 @@ defmodule MbankParser do
     |> Stream.drop(-5)
   end
 
-  defp format_amount(amount) do
-    amount
+  defp format_number(number) do
+    number
     |> String.replace(",", ".")
     |> String.replace(" ", "")
+    |> String.trim()
   end
 
   defp sanitize(string) do
@@ -187,3 +205,6 @@ end
 
 # Call the function with the provided file path
 MbankParser.process(System.argv())
+# MbankParser.process(input_file_path)
+
+# elixir mbank_parser.exs path/to/your/input.csv
