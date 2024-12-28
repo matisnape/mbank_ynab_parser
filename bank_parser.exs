@@ -11,7 +11,7 @@ defmodule BankParser do
   Parses bank CSV files (mBank and ING) and saves a processed version of the file
   """
 
-  @ynab_headers ~w(date memo payee amount)a
+  @ynab_headers ~w(date memo payee amount saldo)a
   @ynab_filename_prefix "eYNAB_ready_"
 
   def process(file_path) do
@@ -54,7 +54,7 @@ defmodule BankParser do
 
   defp prepare_data(stream, bank_type) do
     stream
-    |> CSV.decode!(separator: ?;, field_transform: &to_unicode/1)
+    |> CSV.decode!(separator: ?;, field_transform: &to_unicode/1, escape_character: 0)
     |> Stream.map(&parse_transaction(bank_type, &1))
     |> CSV.encode(
       headers: @ynab_headers,
@@ -65,20 +65,32 @@ defmodule BankParser do
   end
 
   defp parse_transaction(:mbank, transaction) do
-    [_, data_operacji, opis_operacji, tytul, nadawca_odbiorca, numer_konta, kwota, _, _] =
-      transaction
+    case transaction do
+      [_, data_operacji, opis_operacji, tytul, nadawca_odbiorca, numer_konta, kwota, saldo, _] ->
+        %{
+          date: data_operacji,
+          operation: opis_operacji,
+          memo: sanitize(tytul),
+          payee: sanitize(nadawca_odbiorca),
+          account_number: sanitize(numer_konta),
+          amount: format_number(kwota),
+          saldo: format_number(saldo)
+        }
 
-    %{
-      date: data_operacji,
-      operation: opis_operacji,
-      memo: sanitize(tytul),
-      payee: sanitize(nadawca_odbiorca),
-      account_number: sanitize(numer_konta),
-      amount: format_number(kwota)
-    }
+      [_, data_operacji, opis_operacji, tytul, _, nadawca_odbiorca, numer_konta, kwota, saldo, _] ->
+        %{
+          date: data_operacji,
+          operation: opis_operacji,
+          memo: sanitize(tytul),
+          payee: sanitize(nadawca_odbiorca),
+          account_number: sanitize(numer_konta),
+          amount: format_number(kwota),
+          saldo: format_number(saldo)
+        }
+    end
     |> prefill_ynab_fields()
     |> transform_operation()
-    |> Map.take([:date, :memo, :payee, :amount])
+    |> Map.take([:date, :memo, :payee, :amount, :saldo])
   end
 
   defp parse_transaction(:ing, transaction) do
@@ -148,11 +160,17 @@ defmodule BankParser do
     transform_internal(transaction, card_id, transaction.amount)
   end
 
-  defp transform_operation(transaction), do: transaction
+  defp transform_operation(%{operation: operation} = transaction) do
+    Map.merge(transaction, %{payee: operation})
+  end
 
   defp transform_internal(transaction, account_id, amount) do
     accounts()
-    |> Enum.find(&String.contains?(account_id, &1.id))
+    |> Enum.find(fn account ->
+      String.contains?(account_id, account.id) or
+        (transaction.operation == "PRZELEW NA TWOJE CELE" and
+           account.id == "PRZELEW NA TWOJE CELE")
+    end)
     |> case do
       %{id: _, name: account_name} ->
         Map.merge(transaction, %{payee: format_transfer(account_name, amount)})
