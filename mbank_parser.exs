@@ -1,6 +1,7 @@
 Mix.install(
   [
     {:csv, "~> 3.0"},
+    {:iconv, "~> 1.0.12"}
     {:iconv, "~> 1.0.10"}
   ],
   verbose: true
@@ -33,8 +34,6 @@ defmodule MbankParser do
 
   def process(file_path) do
     file = file_path |> File.stream!()
-
-    # maybe use it for new file path: eYNAB_ready_ekonto_2022-02-11.csv
     account_id = find_account_id(file)
 
     file
@@ -138,7 +137,7 @@ defmodule MbankParser do
         Map.merge(transaction, %{payee: format_transfer(account_name)})
 
       _other ->
-        IO.puts("Unknown account: #{account_id}")
+        IO.inspect(["Unknown account: #{account_id} for transaction", transaction])
         transaction
     end
   end
@@ -177,6 +176,7 @@ defmodule MbankParser do
 
   defp accounts(), do: []
 
+
   # Helpers
 
   # CSV file is Windows-encoded, conversion is needed to keep the special characters
@@ -185,6 +185,21 @@ defmodule MbankParser do
   defp to_unicode(row) do
     :iconv.convert("CP1250", "UTF-8", row)
   end
+
+  # defp to_unicode(row) do
+  #   case Codepagex.to_string(row, :"WINDOWS-1250") do
+  #     {:ok, result} -> result
+  #     _ -> row
+  #   end
+  # end
+
+  # defp to_unicode(row) do
+  #   # Using Erlang's unicode module instead of iconv
+  #   case :unicode.characters_to_binary(row, :latin1, :utf8) do
+  #     {:error, _, _} -> row
+  #     result when is_binary(result) -> result
+  #   end
+  # end
 
   defp find_account_id(stream) do
     stream

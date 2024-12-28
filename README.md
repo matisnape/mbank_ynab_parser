@@ -3,10 +3,11 @@
 This repo contains 2 scripts for processing an mBank CSV file into a file supported by YNAB - in Elixir and in Python.
 Why? Because mBank transaction statements contain a lot of metadata that breaks stuff and the encoding is lame Windows-1250
 
-## Elixir
+## Elixir - BankParser
 
 ### Assumptions & Info
 
+- supports mBank and ING CSV files
 - the script was written for Elixir 1.14, but there's nothing complicated in it not to work in other versions
 - the script is assuming you have multiple accounts inside YNAB and it's meant to be used with any of them (maybe apart from credit card statements) - there should not be any duplicate transactions created in case you import files for transactions between them. It's mostly YNAB doing its job with matching, but it's worth to mention.
 - the script was not tested with credit card statements - mBank's transactions list for them is very limited so personally I scrape them via Javascript script in browser.
@@ -14,6 +15,16 @@ Why? Because mBank transaction statements contain a lot of metadata that breaks 
 Acknowledgements:
 - Encoding inspired by [this thread](https://elixirforum.com/t/sharing-with-the-community-text-transcoding-libraries/17962)
 - Script structure I learned from [this lovely repo](https://github.com/wojtekmach/mix_install_examples/)
+
+### Usage
+
+0) Populate the `accounts/0` function in `BankParser` module for mapping accounts in transactions
+1) `elixir bank_parser.exs <path to inputfile>`
+2) A new file will be written to the same location as the input file, prefixed with `eYNAB_ready`
+3) Go to YNAB
+4) Import file to appropriate account - be careful not to mix the imports :)
+
+## Elixir - MbankParser - deprecated
 
 ### Usage
 
