@@ -33,8 +33,6 @@ defmodule MbankParser do
 
   def process(file_path) do
     file = file_path |> File.stream!()
-
-    # maybe use it for new file path: eYNAB_ready_ekonto_2022-02-11.csv
     account_id = find_account_id(file)
 
     file
