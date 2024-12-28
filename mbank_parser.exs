@@ -2,6 +2,7 @@ Mix.install(
   [
     {:csv, "~> 3.0"},
     {:iconv, "~> 1.0.12"}
+    {:iconv, "~> 1.0.10"}
   ],
   verbose: true
 )
@@ -167,17 +168,14 @@ defmodule MbankParser do
   # Prepare an enum of accounts to be used for mapping.
   # The account name should be the same as in YNAB
 
-  defp accounts do
-    [
-      %{id: "", name: "Ekonto"}
-    ]
-  end
+  # defp accounts do
+  #   [
+  #     %{id: "", name: "Ekonto"}
+  #   ]
+  # end
 
   defp accounts(), do: []
 
-  #   [
-  #   ]
-  # end
 
   # Helpers
 
