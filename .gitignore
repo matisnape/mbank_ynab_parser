@@ -4,3 +4,12 @@ constants.py
 __pycache__
 .DS_Store
 ignore
+
+/_build/
+/cover/
+/deps/
+/doc/
+erl_crash.dump
+*.ez
+bank_parser-*.tar
+/tmp/

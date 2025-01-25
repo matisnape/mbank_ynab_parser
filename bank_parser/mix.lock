@@ -1,0 +1,4 @@
+%{
+  "csv": {:hex, :csv, "3.2.2", "452f96414b39a176b7c390af6d8b78f15130dc6167fe3b836729131f515d843e", [:mix], [], "hexpm", "cbf256ff74a3fa01d9ec420d07b19c90d410ed9fe5b6d6e1bc7662edf35bc574"},
+  "iconv": {:hex, :iconv, "1.0.14", "719a151d124bb356d9054c30f6256f6219f5f9e95ceb748db9ad5f8e28fb3083", [:rebar3], [], "hexpm", "54e2a1bdac2de91292d46d251528a1e1cd62f4709d6572b38b537e9d30599740"},
+}
