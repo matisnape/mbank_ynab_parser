@@ -133,6 +133,13 @@ defmodule BankParser do
     "PODATEK OD ODSETEK KAPITAŁOWYCH"
   ]
 
+  # @other_operations [
+  #   "BLIK ZAKUP E-COMMERCE",
+  #   "BLIK P2P-PRZYCHODZĄCY",
+  #   "BLIK P2P-WYCHODZĄCY",
+  #   "ZAKUP PRZY UŻYCIU KARTY"
+  # ]
+
   defp transform_operation(
          %{operation: "PRZELEW", account_number: account_id, amount: amount} = transaction
        )
@@ -158,6 +165,10 @@ defmodule BankParser do
          %{operation: "RĘCZNA SPŁATA KARTY KREDYT.", payee: card_id} = transaction
        ) do
     transform_internal(transaction, card_id, transaction.amount)
+  end
+
+  defp transform_operation(%{operation: "ZAKUP PRZY UŻYCIU KARTY"} = transaction) do
+    transaction
   end
 
   defp transform_operation(%{operation: operation} = transaction) do
