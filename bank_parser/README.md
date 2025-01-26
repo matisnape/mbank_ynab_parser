@@ -1,21 +1,26 @@
 # BankParser
 
-**TODO: Add description**
+To start your Phoenix server:
 
-## Installation
+  * Run `mix setup` to install and setup dependencies
+  * Run `mix phx.gen.cert` to generate certificate for https
+  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `bank_parser` to your list of dependencies in `mix.exs`:
+Now you can visit [`https://localhost:8002`](https://localhost:8002) from your browser.
 
-```elixir
-def deps do
-  [
-    {:bank_parser, "~> 0.1.0"}
-  ]
-end
-```
+Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/bank_parser>.
+## TODO:
+- [ ] Add save to file button
+- [ ] Upload multiple files
+- [ ] Allow to provide list of accounts
+- [ ] Allow to modify behaviour for transaction types
+- [ ] Add (at least) doctests for Transaction module
 
+## Learn more
+
+  * Official website: https://www.phoenixframework.org/
+  * Guides: https://hexdocs.pm/phoenix/overview.html
+  * Docs: https://hexdocs.pm/phoenix
+  * Forum: https://elixirforum.com/c/phoenix-forum
+  * Source: https://github.com/phoenixframework/phoenix
