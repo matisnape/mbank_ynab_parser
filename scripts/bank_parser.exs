@@ -12,7 +12,7 @@ defmodule BankParser do
   """
 
   @ynab_headers ~w(date memo payee amount saldo)a
-  @ynab_filename_prefix "eYNAB_ready_"
+  @ynab_filename_prefix "BPeYNAB_ready_"
 
   def process(file_path) do
     file = File.stream!(file_path)
@@ -230,11 +230,11 @@ defmodule BankParser do
   # Prepare an enum of accounts to be used for mapping.
   # The account name should be the same as in YNAB
 
-  defp accounts do
-    [
-      %{id: "", name: "Ekonto"}
-    ]
-  end
+  # defp accounts do
+  #   [
+  #     %{id: "", name: "Ekonto"}
+  #   ]
+  # end
 
   defp accounts(), do: []
 

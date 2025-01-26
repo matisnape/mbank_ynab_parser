@@ -2,7 +2,6 @@ Mix.install(
   [
     {:csv, "~> 3.0"},
     {:iconv, "~> 1.0.12"}
-    {:iconv, "~> 1.0.10"}
   ],
   verbose: true
 )
@@ -175,7 +174,6 @@ defmodule MbankParser do
   # end
 
   defp accounts(), do: []
-
 
   # Helpers
 
