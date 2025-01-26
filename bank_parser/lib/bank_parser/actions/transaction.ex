@@ -1,62 +1,9 @@
-defmodule BankParser.Parser do
+defmodule BankParser.Actions.Transaction do
   @moduledoc """
-  Parses bank CSV files (mBank and ING) and saves a processed version of the file
+  Operations on transactions
   """
 
-  @ynab_headers ~w(date memo payee amount saldo)a
-  @ynab_filename_prefix "eYNAB_ready_"
-
-  def process(file_path) do
-    file = File.stream!(file_path)
-    bank_type = detect_bank_type(file)
-
-    file
-    |> drop_metadata(bank_type)
-    |> prepare_data(bank_type)
-    |> save_to_file(file_path)
-
-    IO.puts("Parsing complete for #{bank_type} file")
-  end
-
-  defp detect_bank_type(stream) do
-    first_line =
-      stream
-      |> Stream.take(1)
-      |> Enum.at(0)
-      |> to_unicode()
-
-    cond do
-      String.contains?(first_line, "mBank") -> :mbank
-      String.contains?(first_line, "ING") -> :ing
-      true -> raise "Unknown bank type. First line should contain 'mBank' or 'ING'"
-    end
-  end
-
-  defp drop_metadata(stream, :mbank) do
-    stream
-    |> Stream.drop(38)
-    |> Stream.drop(-5)
-  end
-
-  defp drop_metadata(stream, :ing) do
-    stream
-    |> Stream.drop(19)
-    |> Stream.drop(-3)
-  end
-
-  defp prepare_data(stream, bank_type) do
-    stream
-    |> CSV.decode!(separator: ?;, field_transform: &to_unicode/1, escape_character: 0)
-    |> Stream.map(&parse_transaction(bank_type, &1))
-    |> CSV.encode(
-      headers: @ynab_headers,
-      separator: ?,,
-      delimeter: "\r\n"
-    )
-    |> Enum.to_list()
-  end
-
-  defp parse_transaction(:mbank, transaction) do
+  def parse(:mbank, transaction) do
     case transaction do
       [_, data_operacji, opis_operacji, tytul, nadawca_odbiorca, numer_konta, kwota, saldo, _] ->
         %{
@@ -85,7 +32,7 @@ defmodule BankParser.Parser do
     |> Map.take([:date, :memo, :payee, :amount, :saldo])
   end
 
-  defp parse_transaction(:ing, transaction) do
+  def parse(:ing, transaction) do
     [data_transakcji, _2, dane_kontrahenta, tytul, nr_rachunku, _6, szczegoly, _8, kwota, _9 | _] =
       transaction
 
@@ -102,18 +49,6 @@ defmodule BankParser.Parser do
     |> Map.take([:date, :memo, :payee, :amount])
   end
 
-  defp save_to_file(data, file_path) do
-    file_name = @ynab_filename_prefix <> Path.basename(file_path)
-    full_path = Path.join(Path.dirname(file_path), file_name)
-
-    File.write!(full_path, data)
-    IO.puts("File saved as #{file_name}")
-  end
-
-  defp to_unicode(row) do
-    :iconv.convert("CP1250", "UTF-8", row)
-  end
-
   @internal_account_operations [
     "PRZELEW WŁASNY",
     "PRZELEW WEWNĘTRZNY PRZYCHODZĄCY",
@@ -124,6 +59,13 @@ defmodule BankParser.Parser do
     "KAPITALIZACJA ODSETEK",
     "PODATEK OD ODSETEK KAPITAŁOWYCH"
   ]
+
+  # @other_operations [
+  #   "BLIK ZAKUP E-COMMERCE",
+  #   "BLIK P2P-PRZYCHODZĄCY",
+  #   "BLIK P2P-WYCHODZĄCY",
+  #   "ZAKUP PRZY UŻYCIU KARTY"
+  # ]
 
   defp transform_operation(
          %{operation: "PRZELEW", account_number: account_id, amount: amount} = transaction
@@ -150,6 +92,10 @@ defmodule BankParser.Parser do
          %{operation: "RĘCZNA SPŁATA KARTY KREDYT.", payee: card_id} = transaction
        ) do
     transform_internal(transaction, card_id, transaction.amount)
+  end
+
+  defp transform_operation(%{operation: "ZAKUP PRZY UŻYCIU KARTY"} = transaction) do
+    transaction
   end
 
   defp transform_operation(%{operation: operation} = transaction) do
@@ -208,17 +154,6 @@ defmodule BankParser.Parser do
     end
   end
 
-  # Prepare an enum of accounts to be used for mapping.
-  # The account name should be the same as in YNAB
-
-  # defp accounts do
-  #   [
-  #     %{id: "", name: "Ekonto"}
-  #   ]
-  # end
-
-  defp accounts(), do: []
-
   defp format_number(number) do
     number
     |> String.replace(",", ".")
@@ -240,4 +175,24 @@ defmodule BankParser.Parser do
 
   defp format_transfer(account_name, "-" <> _rest), do: "Transfer: " <> account_name
   defp format_transfer(account_name, _amount), do: "Transfer from: " <> account_name
+
+  # Prepare an enum of accounts to be used for mapping.
+  # The account name should be the same as in YNAB
+
+  # Take a look at priv/accounts/accounts.example.json
+
+  defp accounts_path() do
+    Application.app_dir(:bank_parser, "priv/accounts/accounts.json")
+  end
+
+  defp accounts() do
+    accounts_path()
+    |> File.read!()
+    |> Jason.decode!()
+    |> Enum.map(fn account ->
+      account
+      |> Map.new(fn {key, value} -> {String.to_existing_atom(key), value} end)
+      |> BankParser.Models.Account.new()
+    end)
+  end
 end

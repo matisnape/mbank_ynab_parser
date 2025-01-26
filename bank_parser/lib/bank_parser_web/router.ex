@@ -18,6 +18,7 @@ defmodule BankParserWeb.Router do
     pipe_through(:browser)
 
     get("/", PageController, :home)
+    live("/parse", ParserLive)
   end
 
   # Other scopes may use custom stacks.
