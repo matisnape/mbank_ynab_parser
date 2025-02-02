@@ -4,6 +4,8 @@ defmodule BankParserWeb.DownloadController do
   def download(conn, %{"filename" => filename}) do
     path = Path.join(System.tmp_dir!(), filename)
 
+    # example path: /var/folders/qm/smth/T/eYNAB_ready_250113_250201.csv"
+
     conn
     |> send_download({:file, path},
       filename: filename,

@@ -56,11 +56,15 @@ defmodule BankParser.Actions.Parser do
   end
 
   defp prepare_data(stream, bank_type, callback) do
-    stream
-    |> CSV.decode!(separator: ?;, field_transform: &to_unicode/1, escape_character: 0)
+    decoded_stream =
+      CSV.decode!(stream, separator: ?;, field_transform: &to_unicode/1, escape_character: 0)
+
+    [headers | data] = Enum.to_list(decoded_stream)
+
+    data
     |> Stream.map(fn transaction ->
       parsed = Transaction.parse(bank_type, transaction)
-      callback.(parsed, self())
+      callback.({headers, transaction, parsed}, self())
       parsed
     end)
     |> CSV.encode(
@@ -75,7 +79,7 @@ defmodule BankParser.Actions.Parser do
 
   defp drop_metadata(stream, :mbank) do
     stream
-    |> Stream.drop(38)
+    |> Stream.drop(37)
     |> Stream.drop(-5)
   end
 
