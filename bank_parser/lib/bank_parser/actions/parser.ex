@@ -25,6 +25,22 @@ defmodule BankParser.Actions.Parser do
     |> save_to_file(file_path)
   end
 
+  def save_to_file(data, file_path) do
+    file_name = @ynab_filename_prefix <> Path.basename(file_path)
+    full_path = Path.join(Path.dirname(file_path), file_name)
+
+    File.write!(full_path, data)
+    IO.puts("File saved as #{file_name}")
+  end
+
+  def ynab_headers, do: @ynab_headers
+
+  def generate_output_filename(nil), do: "#{@ynab_filename_prefix}_transactions.csv"
+
+  def generate_output_filename(original_filename) do
+    @ynab_filename_prefix <> original_filename
+  end
+
   defp detect_bank_type(stream) do
     first_line =
       stream
@@ -67,14 +83,6 @@ defmodule BankParser.Actions.Parser do
     stream
     |> Stream.drop(19)
     |> Stream.drop(-3)
-  end
-
-  defp save_to_file(data, file_path) do
-    file_name = @ynab_filename_prefix <> Path.basename(file_path)
-    full_path = Path.join(Path.dirname(file_path), file_name)
-
-    File.write!(full_path, data)
-    IO.puts("File saved as #{file_name}")
   end
 
   defp to_unicode(row) do

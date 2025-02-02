@@ -24,6 +24,14 @@ defmodule BankParserWeb.ParserLive do
 
       <%= if @transactions != [] do %>
         <div :if={@transactions != []} class="mt-4 overflow-x-auto">
+          <div class="flex justify-end mb-4">
+            <button
+              phx-click="save_csv"
+              class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            >
+              Save to CSV
+            </button>
+          </div>
           <table class="min-w-full table-auto border-collapse">
             <thead>
               <tr class="bg-gray-100">
@@ -63,7 +71,7 @@ defmodule BankParserWeb.ParserLive do
   def mount(_params, _session, socket) do
     {:ok,
      socket
-     |> assign(uploaded_files: [], result: nil, transactions: [])
+     |> assign(uploaded_files: [], result: nil, transactions: [], original_filename: nil)
      |> allow_upload(:csv, @upload_opts)}
   end
 
@@ -72,9 +80,33 @@ defmodule BankParserWeb.ParserLive do
   end
 
   def handle_event("save", _params, socket) do
+    # Store the original filename before processing
+    filename = socket.assigns.uploads.csv.entries |> List.first() |> Map.get(:client_name)
+
     socket
+    |> assign(original_filename: filename)
     |> upload_and_process_file()
     |> handle_result(socket)
+  end
+
+  def handle_event("save_csv", _params, socket) do
+    csv_content =
+      socket.assigns.transactions
+      |> Enum.reverse()
+      |> CSV.encode(headers: Parser.ynab_headers(), separator: ?,, delimiter: "\r\n")
+      |> Enum.to_list()
+      |> Enum.join()
+
+    filename = Parser.generate_output_filename(socket.assigns.original_filename)
+
+    {:noreply,
+     socket
+     |> put_flash(:info, "Downloading CSV file")
+     |> push_event("download", %{
+       filename: filename,
+       content: csv_content,
+       type: "text/csv"
+     })}
   end
 
   defp upload_and_process_file(socket) do
