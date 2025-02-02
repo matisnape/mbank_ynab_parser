@@ -130,19 +130,33 @@ defmodule BankParserWeb.ParserLive do
     auto_upload: true
   ]
 
-  def mount(_params, _session, socket) do
-    {:ok,
-     socket
-     |> assign(
-       uploaded_files: [],
-       result: nil,
-       transactions: [],
-       original_transactions: [],
-       original_headers: nil,
-       original_filename: nil,
-       show_original: false
-     )
-     |> allow_upload(:csv, @upload_opts)}
+  def mount(params, _session, socket) do
+    socket =
+      socket
+      |> assign(
+        uploaded_files: [],
+        result: nil,
+        transactions: [],
+        original_transactions: [],
+        original_headers: nil,
+        original_filename: nil,
+        show_original: false
+      )
+      |> allow_upload(:csv, @upload_opts)
+
+    # Load test file if provided
+    if test_file = Map.get(params, "load_test_file") do
+      file_path = Application.app_dir(:bank_parser, "priv/test_files/#{test_file}")
+
+      if File.exists?(file_path) do
+        Parser.process(file_path, &handle_transaction/2)
+        {:ok, assign(socket, original_filename: test_file)}
+      else
+        {:ok, assign(socket, result: "Test file not found: #{test_file}")}
+      end
+    else
+      {:ok, socket}
+    end
   end
 
   def handle_event("validate", _params, socket) do
