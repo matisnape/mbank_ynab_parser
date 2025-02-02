@@ -24,13 +24,18 @@ defmodule BankParserWeb.ParserLive do
 
       <%= if @transactions != [] do %>
         <div :if={@transactions != []} class="mt-4 overflow-x-auto">
-          <div class="flex justify-end mb-4">
-            <button
-              phx-click="save_csv"
-              class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
-              Save to CSV
-            </button>
+          <div class="flex justify-end mb-4 items-center gap-4">
+            <div class="text-gray-600">
+              <span class="font-medium"><b>Original file:</b></span> {@original_filename}
+            </div>
+            <div>
+              <button
+                phx-click="save_csv"
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+              >
+                Save to CSV
+              </button>
+            </div>
           </div>
           <table class="min-w-full table-auto border-collapse">
             <thead>
@@ -83,8 +88,10 @@ defmodule BankParserWeb.ParserLive do
     # Store the original filename before processing
     filename = socket.assigns.uploads.csv.entries |> List.first() |> Map.get(:client_name)
 
+    # Store in a new socket variable
+    socket = assign(socket, original_filename: filename)
+
     socket
-    |> assign(original_filename: filename)
     |> upload_and_process_file()
     |> handle_result(socket)
   end
@@ -99,14 +106,15 @@ defmodule BankParserWeb.ParserLive do
 
     filename = Parser.generate_output_filename(socket.assigns.original_filename)
 
+    tmp_path = Path.join(System.tmp_dir!(), filename)
+    File.write!(tmp_path, csv_content)
+
     {:noreply,
      socket
-     |> put_flash(:info, "Downloading CSV file")
-     |> push_event("download", %{
-       filename: filename,
-       content: csv_content,
-       type: "text/csv"
-     })}
+     |> push_navigate(
+       to: "/download/#{Path.basename(tmp_path)}",
+       target: "_blank"
+     )}
   end
 
   defp upload_and_process_file(socket) do
@@ -137,6 +145,9 @@ defmodule BankParserWeb.ParserLive do
 
   defp handle_result([:ok], socket) do
     Process.send_after(self(), :clear_flash, 5_000)
-    {:noreply, assign(socket, result: "File processed successfully")}
+
+    {:noreply,
+     socket
+     |> assign(result: "File processed successfully")}
   end
 end

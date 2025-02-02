@@ -19,6 +19,7 @@ defmodule BankParserWeb.Router do
 
     get("/", PageController, :home)
     live("/parse", ParserLive)
+    get "/download/:filename", DownloadController, :download
   end
 
   # Other scopes may use custom stacks.

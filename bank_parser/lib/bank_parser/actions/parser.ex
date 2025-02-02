@@ -5,7 +5,7 @@ defmodule BankParser.Actions.Parser do
 
   alias BankParser.Actions.Transaction
 
-  @ynab_headers ~w(date memo payee amount saldo)a
+  @ynab_headers ~w(date payee memo amount saldo)a
   @ynab_filename_prefix "eYNAB_ready_"
 
   def process(file_path, callback \\ fn _, _ -> :ok end) do
