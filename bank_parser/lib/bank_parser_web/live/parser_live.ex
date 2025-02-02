@@ -3,6 +3,55 @@ defmodule BankParserWeb.ParserLive do
 
   alias BankParser.Actions.Parser
 
+  def render(assigns) do
+    ~H"""
+    <div class="max-w-6xl mx-auto p-6">
+      <h1 class="text-2xl font-bold mb-4">Bank Statement Parser</h1>
+
+      <form phx-submit="save" phx-change="validate">
+        <div class="mb-4">
+          <.live_file_input upload={@uploads.csv} class="block w-full" />
+        </div>
+
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
+          Upload and Process
+        </button>
+      </form>
+
+      <div :if={@result} class="mt-4 p-4 bg-green-100 rounded">
+        {@result}
+      </div>
+
+      <%= if @transactions != [] do %>
+        <div :if={@transactions != []} class="mt-4 overflow-x-auto">
+          <table class="min-w-full table-auto border-collapse">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="text-left p-3 border-b">Date</th>
+                <th class="text-left p-3 border-b w-1/3">Payee</th>
+                <th class="text-left p-3 border-b w-1/3">Memo</th>
+                <th class="text-right p-3 border-b">Amount</th>
+                <th class="text-right p-3 border-b">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%= for transaction <- @transactions do %>
+                <tr class="hover:bg-gray-50">
+                  <td class="p-3 border-b">{transaction.date}</td>
+                  <td class="p-3 border-b">{transaction.payee}</td>
+                  <td class="p-3 border-b">{transaction.memo}</td>
+                  <td class="p-3 border-b text-right">{transaction.amount}</td>
+                  <td class="p-3 border-b text-right">{transaction.saldo}</td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </div>
+    """
+  end
+
   @upload_opts [
     accept: ~w(.csv),
     max_entries: 1,
@@ -57,56 +106,5 @@ defmodule BankParserWeb.ParserLive do
   defp handle_result([:ok], socket) do
     Process.send_after(self(), :clear_flash, 5_000)
     {:noreply, assign(socket, result: "File processed successfully")}
-  end
-
-  def render(assigns) do
-    ~H"""
-    <div class="max-w-6xl mx-auto p-6">
-      <h1 class="text-2xl font-bold mb-4">Bank Statement Parser</h1>
-
-      <form phx-submit="save" phx-change="validate">
-        <div class="mb-4">
-          <.live_file_input upload={@uploads.csv} class="block w-full" />
-        </div>
-
-        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
-          Upload and Process
-        </button>
-      </form>
-
-      <%= if @result do %>
-        <div class="mt-4 p-4 bg-green-100 rounded">
-          {@result}
-        </div>
-      <% end %>
-
-      <%= if @transactions != [] do %>
-        <div class="mt-4 overflow-x-auto">
-          <table class="min-w-full table-auto border-collapse">
-            <thead>
-              <tr class="bg-gray-100">
-                <th class="text-left p-3 border-b">Date</th>
-                <th class="text-left p-3 border-b w-1/3">Payee</th>
-                <th class="text-left p-3 border-b w-1/3">Memo</th>
-                <th class="text-right p-3 border-b">Amount</th>
-                <th class="text-right p-3 border-b">Balance</th>
-              </tr>
-            </thead>
-            <tbody>
-              <%= for transaction <- @transactions do %>
-                <tr class="hover:bg-gray-50">
-                  <td class="p-3 border-b">{transaction.date}</td>
-                  <td class="p-3 border-b">{transaction.payee}</td>
-                  <td class="p-3 border-b">{transaction.memo}</td>
-                  <td class="p-3 border-b text-right">{transaction.amount}</td>
-                  <td class="p-3 border-b text-right">{transaction.saldo}</td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% end %>
-    </div>
-    """
   end
 end
