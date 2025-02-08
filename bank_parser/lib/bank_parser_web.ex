@@ -52,8 +52,8 @@ defmodule BankParserWeb do
 
   def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {BankParserWeb.Layouts, :app}
+      use Phoenix.LiveView
+      # layout: {BankParserWeb.Layouts, :app}
 
       unquote(html_helpers())
     end
@@ -89,6 +89,7 @@ defmodule BankParserWeb do
       import Phoenix.HTML
       # Core UI components
       import BankParserWeb.CoreComponents
+      import BankParserWeb.TableComponents
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
