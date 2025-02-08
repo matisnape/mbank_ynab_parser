@@ -2,6 +2,7 @@ defmodule BankParser.Actions.Transaction do
   @moduledoc """
   Operations on transactions
   """
+  import BankParser.Helpers, only: [accounts: 0, format_number: 1, sanitize: 1]
 
   def parse(:mbank, transaction) do
     case transaction do
@@ -52,7 +53,6 @@ defmodule BankParser.Actions.Transaction do
   @internal_account_operations [
     "PRZELEW WŁASNY",
     "PRZELEW WEWNĘTRZNY PRZYCHODZĄCY",
-    "PRZELEW REGULARNE OSZCZ"
     "PRZELEW REGULARNE OSZCZ",
     "WYPŁATA Z CELU"
   ]
@@ -100,8 +100,6 @@ defmodule BankParser.Actions.Transaction do
     transaction
   end
 
-  defp transform_operation(%{operation: operation} = transaction) do
-    Map.merge(transaction, %{payee: operation})
   defp transform_operation(%{account_number: ""} = transaction) do
     transaction
   end
@@ -162,45 +160,6 @@ defmodule BankParser.Actions.Transaction do
     end
   end
 
-  defp format_number(number) do
-    number
-    |> String.replace(",", ".")
-    |> String.replace(" ", "")
-    |> String.trim()
-  end
-
-  defp sanitize(string) do
-    boring_strings = [
-      "'",
-      "\""
-    ]
-
-    string
-    |> String.replace(boring_strings, "")
-    |> String.split()
-    |> Enum.join(" ")
-  end
-
   defp format_transfer(account_name, "-" <> _rest), do: "Transfer: " <> account_name
   defp format_transfer(account_name, _amount), do: "Transfer from: " <> account_name
-
-  # Prepare an enum of accounts to be used for mapping.
-  # The account name should be the same as in YNAB
-
-  # Take a look at priv/accounts/accounts.example.json
-
-  defp accounts_path() do
-    Application.app_dir(:bank_parser, "priv/accounts/accounts.json")
-  end
-
-  defp accounts() do
-    accounts_path()
-    |> File.read!()
-    |> Jason.decode!()
-    |> Enum.map(fn account ->
-      account
-      |> Map.new(fn {key, value} -> {String.to_existing_atom(key), value} end)
-      |> BankParser.Models.Account.new()
-    end)
-  end
 end
