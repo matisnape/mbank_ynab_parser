@@ -53,6 +53,8 @@ defmodule BankParser.Actions.Transaction do
     "PRZELEW WŁASNY",
     "PRZELEW WEWNĘTRZNY PRZYCHODZĄCY",
     "PRZELEW REGULARNE OSZCZ"
+    "PRZELEW REGULARNE OSZCZ",
+    "WYPŁATA Z CELU"
   ]
 
   @interest_operations [
@@ -100,6 +102,12 @@ defmodule BankParser.Actions.Transaction do
 
   defp transform_operation(%{operation: operation} = transaction) do
     Map.merge(transaction, %{payee: operation})
+  defp transform_operation(%{account_number: ""} = transaction) do
+    transaction
+  end
+
+  defp transform_operation(%{memo: memo, account_number: account_number} = transaction) do
+    Map.merge(transaction, %{memo: memo <> " " <> account_number})
   end
 
   defp transform_internal(transaction, account_id, amount) do
