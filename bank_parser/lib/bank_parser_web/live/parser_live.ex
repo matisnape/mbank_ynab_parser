@@ -150,7 +150,7 @@ defmodule BankParserWeb.ParserLive do
 
       if File.exists?(file_path) do
         Parser.process(file_path, &handle_transaction/2)
-        {:ok, assign(socket, original_filename: test_file)}
+        {:ok, assign(socket, original_filename: Path.basename(test_file))}
       else
         {:ok, assign(socket, result: "Test file not found: #{test_file}")}
       end
@@ -165,7 +165,10 @@ defmodule BankParserWeb.ParserLive do
 
   def handle_event("save", _params, socket) do
     # Store the original filename before processing
-    filename = socket.assigns.uploads.csv.entries |> List.first() |> Map.get(:client_name)
+    filename =
+      socket.assigns.uploads.csv.entries
+      |> List.first()
+      |> Map.get(:client_name)
 
     # Store in a new socket variable
     socket = assign(socket, original_filename: filename)
