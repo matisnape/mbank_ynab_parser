@@ -8,6 +8,7 @@ defmodule BankParser.Actions.Parser do
   @ynab_headers ~w(date payee memo amount saldo)a
   @ynab_filename_prefix "eYNAB_ready_"
 
+  @spec process(String.t(), any) :: :ok | list(String.t())
   def process(file_path, callback \\ fn _, _ -> :ok end) do
     file = File.stream!(file_path)
     bank_type = detect_bank_type(file)
@@ -85,7 +86,7 @@ defmodule BankParser.Actions.Parser do
 
   defp drop_metadata(stream, :ing) do
     stream
-    |> Stream.drop(19)
+    |> Stream.drop(21)
     |> Stream.drop(-3)
   end
 
