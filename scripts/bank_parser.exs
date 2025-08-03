@@ -48,7 +48,7 @@ defmodule BankParser do
 
   defp drop_metadata(stream, :ing) do
     stream
-    |> Stream.drop(19)
+    |> Stream.drop(21)
     |> Stream.drop(-3)
   end
 

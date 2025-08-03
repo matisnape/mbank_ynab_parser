@@ -6,7 +6,7 @@ defmodule BankParser.CLI do
   def main(args) do
     case args do
       [file_path] ->
-        BankParser.Parser.process(file_path)
+        BankParser.Actions.Parser.process_and_save(file_path)
 
       _ ->
         IO.puts("Usage: bank_parser <path_to_csv_file>")

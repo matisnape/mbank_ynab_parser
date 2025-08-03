@@ -5,7 +5,7 @@ defmodule BankParserWeb.TableComponents do
   attr :transactions, :list, required: true
   attr :original_transactions, :list, required: true
   attr :original_headers, :list
-  attr :original_filename, :string
+  attr :original_filename, :string, required: true
   attr :show_original, :boolean, default: false
 
   def transactions_table(assigns) do

@@ -6,7 +6,7 @@ defmodule BankParser do
   @doc """
   Process a bank statement file.
   """
-  def process(file_path) do
-    BankParser.Parser.process(file_path)
+  def process(_file_path) do
+    # BankParser.Parser.process(file_path)
   end
 end
