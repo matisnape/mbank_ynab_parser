@@ -21,7 +21,9 @@ defmodule BankParserWeb.ParserLive do
 
   def handle_progress(:csv, entry, socket) do
     if entry.done? do
-      process_finished_upload(socket)
+      socket
+      |> assign(original_filename: entry.client_name)
+      |> process_finished_upload()
     else
       socket
       |> no_reply()
@@ -150,13 +152,6 @@ defmodule BankParserWeb.ParserLive do
   defp process_finished_upload(socket) do
     # Store the LiveView PID in the process dictionary
     Process.put(:live_view_pid, self()) |> IO.inspect(label: "live_view_pid")
-
-    filename =
-      socket.assigns.uploads.csv.entries
-      |> List.first()
-      |> Map.get(:client_name)
-
-    socket = assign(socket, original_filename: filename)
 
     socket
     |> consume_uploaded_entries(:csv, fn %{path: path}, _entry ->
