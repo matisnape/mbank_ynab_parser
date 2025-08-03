@@ -90,6 +90,7 @@ defmodule BankParserWeb do
       # Core UI components
       import BankParserWeb.CoreComponents
       import BankParserWeb.Components.Table
+      import BankParserWeb.Helpers
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS

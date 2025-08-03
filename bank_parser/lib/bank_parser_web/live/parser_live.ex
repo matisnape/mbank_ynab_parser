@@ -3,6 +3,96 @@ defmodule BankParserWeb.ParserLive do
 
   alias BankParser.Actions.Parser
 
+  def mount(params, _session, socket) do
+    socket
+    |> assign(
+      uploaded_files: [],
+      result: nil,
+      transactions: [],
+      original_transactions: [],
+      original_headers: nil,
+      original_filename: nil,
+      show_original: false
+    )
+    |> allow_upload(:csv, upload_opts())
+    |> maybe_load_test_file(params)
+    |> ok()
+  end
+
+  def handle_progress(:csv, entry, socket) do
+    if entry.done? do
+      # Store the LiveView PID in the process dictionary
+      Process.put(:live_view_pid, self()) |> IO.inspect(label: "live_view_pid")
+
+      filename =
+        socket.assigns.uploads.csv.entries
+        |> List.first()
+        |> Map.get(:client_name)
+
+      # First assign the filename
+      socket = assign(socket, original_filename: filename)
+
+      socket
+      |> upload_and_process_file()
+      |> handle_result(socket)
+    else
+      socket
+      |> no_reply()
+    end
+  end
+
+  def handle_event("validate", _params, socket) do
+    socket
+    |> no_reply()
+  end
+
+  def handle_event("save_csv", _params, socket) do
+    csv_content =
+      socket.assigns.transactions
+      |> Enum.reverse()
+      |> CSV.encode(headers: Parser.ynab_headers(), separator: ?,, delimiter: "\r\n")
+      |> Enum.to_list()
+      |> Enum.join()
+
+    filename = Parser.generate_output_filename(socket.assigns.original_filename)
+
+    tmp_path = Path.join(System.tmp_dir!(), filename)
+    File.write!(tmp_path, csv_content)
+
+    socket
+    |> push_navigate(
+      to: "/download/#{Path.basename(tmp_path)}",
+      target: "_blank"
+    )
+    |> no_reply()
+  end
+
+  def handle_event("toggle_original", _params, socket) do
+    socket
+    |> assign(show_original: !socket.assigns.show_original)
+    |> no_reply()
+  end
+
+  def handle_transaction({headers, original_rows, parsed}, pid) when is_pid(pid) do
+    # Get the LiveView process ID from the current process dictionary
+    lv_pid = Process.get(:live_view_pid) || pid |> IO.inspect(label: "anks pid")
+    send(lv_pid, {:transaction, {headers, original_rows, parsed}})
+  end
+
+  def handle_info({:transaction, {headers, original_rows, parsed}}, socket) do
+    socket
+    |> assign(:original_headers, headers)
+    |> update(:original_transactions, fn transactions -> [original_rows | transactions] end)
+    |> update(:transactions, fn transactions -> [parsed | transactions] end)
+    |> no_reply()
+  end
+
+  def handle_info(:clear_flash, socket) do
+    socket
+    |> assign(result: nil)
+    |> no_reply()
+  end
+
   def render(assigns) do
     ~H"""
     <div class="max-w-[95%] mx-auto p-6">
@@ -70,113 +160,18 @@ defmodule BankParserWeb.ParserLive do
     """
   end
 
-  def mount(params, _session, socket) do
-    socket =
-      socket
-      |> assign(
-        uploaded_files: [],
-        result: nil,
-        transactions: [],
-        original_transactions: [],
-        original_headers: nil,
-        original_filename: nil,
-        show_original: false
-      )
-      |> allow_upload(:csv, upload_opts())
-
-    # Load test file if provided
-    if test_file = Map.get(params, "load_test_file") do
-      file_path = Application.app_dir(:bank_parser, "priv/test_files/#{test_file}")
-
-      if File.exists?(file_path) do
-        Parser.process(file_path, &handle_transaction/2)
-        {:ok, assign(socket, original_filename: Path.basename(test_file))}
-      else
-        {:ok, assign(socket, result: "Test file not found: #{test_file}")}
-      end
-    else
-      {:ok, socket}
-    end
-  end
-
-  def handle_progress(:csv, entry, socket) do
-    if entry.done? do
-      # Store the LiveView PID in the process dictionary
-      Process.put(:live_view_pid, self()) |> IO.inspect(label: "live_view_pid")
-
-      filename =
-        socket.assigns.uploads.csv.entries
-        |> List.first()
-        |> Map.get(:client_name)
-
-      # First assign the filename
-      socket = assign(socket, original_filename: filename)
-
-      socket
-      |> IO.inspect(label: "socket")
-      |> upload_and_process_file()
-      |> IO.inspect(label: "upload_and_process_file")
-      |> handle_result(socket)
-      |> IO.inspect(label: "handle_result", limit: :infinity)
-    else
-      {:noreply, socket}
-    end
-  end
-
-  def handle_event("validate", _params, socket) do
-    {:noreply, socket}
-  end
-
-  def handle_event("save_csv", _params, socket) do
-    csv_content =
-      socket.assigns.transactions
-      |> Enum.reverse()
-      |> CSV.encode(headers: Parser.ynab_headers(), separator: ?,, delimiter: "\r\n")
-      |> Enum.to_list()
-      |> Enum.join()
-
-    filename = Parser.generate_output_filename(socket.assigns.original_filename)
-
-    tmp_path = Path.join(System.tmp_dir!(), filename)
-    File.write!(tmp_path, csv_content)
-
-    {:noreply,
-     socket
-     |> push_navigate(
-       to: "/download/#{Path.basename(tmp_path)}",
-       target: "_blank"
-     )}
-  end
-
-  def handle_event("toggle_original", _params, socket) do
-    {:noreply, assign(socket, show_original: !socket.assigns.show_original)}
-  end
-
-  def handle_transaction({headers, original_rows, parsed}, pid) when is_pid(pid) do
-    # Get the LiveView process ID from the current process dictionary
-    lv_pid = Process.get(:live_view_pid) || pid |> IO.inspect(label: "anks pid")
-    send(lv_pid, {:transaction, {headers, original_rows, parsed}})
-  end
-
-  def handle_info({:transaction, {headers, original_rows, parsed}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:original_headers, headers)
-     |> update(:original_transactions, fn transactions -> [original_rows | transactions] end)
-     |> update(:transactions, fn transactions -> [parsed | transactions] end)}
-  end
-
-  def handle_info(:clear_flash, socket) do
-    {:noreply, assign(socket, result: nil)}
-  end
-
   defp handle_result([{:error, reason}], socket) do
-    {:noreply, put_flash(socket, :error, reason)}
+    socket
+    |> put_flash(:error, reason)
+    |> no_reply()
   end
 
   defp handle_result([:ok], socket) do
     Process.send_after(self(), :clear_flash, 5_000)
-    {:noreply, assign(socket, result: "File processed successfully")}
+
+    socket
+    |> assign(result: "File processed successfully")
+    |> no_reply()
   end
 
   defp upload_and_process_file(socket) do
@@ -202,6 +197,43 @@ defmodule BankParserWeb.ParserLive do
       auto_upload: true,
       progress: &handle_progress/3
     ]
+  end
+
+  # Attempts to load a test file if specified in params
+  # Returns socket with appropriate assignments based on the result
+  defp maybe_load_test_file(socket, params) do
+    case Map.get(params, "load_test_file") do
+      nil ->
+        socket
+
+      test_file when is_binary(test_file) ->
+        load_test_file(socket, test_file)
+
+      _ ->
+        assign(socket, result: "Invalid test file parameter")
+    end
+  end
+
+  # Loads the specified test file and processes it
+  defp load_test_file(socket, test_file) do
+    file_path = build_test_file_path(test_file)
+
+    if File.exists?(file_path) do
+      case Parser.process(file_path, &handle_transaction/2) do
+        :ok ->
+          assign(socket, original_filename: Path.basename(test_file))
+
+        {:error, reason} ->
+          assign(socket, result: "Error processing test file: #{reason}")
+      end
+    else
+      assign(socket, result: "Test file not found: #{test_file}")
+    end
+  end
+
+  # Builds the full path to a test file
+  defp build_test_file_path(filename) do
+    Application.app_dir(:bank_parser, "priv/test_files/#{filename}")
   end
 
   defp error_to_string(:too_large), do: "File is too large"
