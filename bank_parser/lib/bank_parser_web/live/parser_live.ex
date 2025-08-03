@@ -21,20 +21,7 @@ defmodule BankParserWeb.ParserLive do
 
   def handle_progress(:csv, entry, socket) do
     if entry.done? do
-      # Store the LiveView PID in the process dictionary
-      Process.put(:live_view_pid, self()) |> IO.inspect(label: "live_view_pid")
-
-      filename =
-        socket.assigns.uploads.csv.entries
-        |> List.first()
-        |> Map.get(:client_name)
-
-      # First assign the filename
-      socket = assign(socket, original_filename: filename)
-
-      socket
-      |> upload_and_process_file()
-      |> handle_result(socket)
+      process_finished_upload(socket)
     else
       socket
       |> no_reply()
@@ -139,7 +126,7 @@ defmodule BankParserWeb.ParserLive do
 
           <%= for err <- upload_errors(@uploads.csv) do %>
             <div class="mt-2 text-sm text-red-500">
-              {error_to_string(err)}
+              {error_msg(err)}
             </div>
           <% end %>
         </div>
@@ -160,32 +147,38 @@ defmodule BankParserWeb.ParserLive do
     """
   end
 
-  defp handle_result([{:error, reason}], socket) do
+  defp process_finished_upload(socket) do
+    # Store the LiveView PID in the process dictionary
+    Process.put(:live_view_pid, self()) |> IO.inspect(label: "live_view_pid")
+
+    filename =
+      socket.assigns.uploads.csv.entries
+      |> List.first()
+      |> Map.get(:client_name)
+
+    socket = assign(socket, original_filename: filename)
+
     socket
-    |> put_flash(:error, reason)
-    |> no_reply()
-  end
+    |> consume_uploaded_entries(:csv, fn %{path: path}, _entry ->
+      case Parser.process(path, &handle_transaction/2) do
+        :ok -> {:ok, :uploaded}
+        {:error, reason} -> {:ok, {:error, reason}}
+      end
+    end)
+    |> case do
+      [:uploaded] ->
+        Process.send_after(self(), :clear_flash, 5_000)
 
-  defp handle_result([:ok], socket) do
-    Process.send_after(self(), :clear_flash, 5_000)
+        socket
+        |> assign(result: "File processed successfully")
+        |> no_reply()
 
-    socket
-    |> assign(result: "File processed successfully")
-    |> no_reply()
-  end
-
-  defp upload_and_process_file(socket) do
-    # Then consume the uploaded entries
-    result =
-      consume_uploaded_entries(socket, :csv, fn %{path: path}, _entry ->
-        case Parser.process(path, &handle_transaction/2) do
-          :ok -> {:ok, :ok}
-          {:error, reason} -> {:ok, {:error, reason}}
-        end
-      end)
-
-    # Return both the result and the updated socket with filename
-    result
+      {:error, reason} ->
+        socket
+        |> put_flash(:error, reason)
+        |> no_reply()
+    end
+    |> IO.inspect(label: "process_finished_upload", limit: :infinity)
   end
 
   defp upload_opts do
@@ -236,7 +229,12 @@ defmodule BankParserWeb.ParserLive do
     Application.app_dir(:bank_parser, "priv/test_files/#{filename}")
   end
 
-  defp error_to_string(:too_large), do: "File is too large"
-  defp error_to_string(:too_many_files), do: "Too many files"
-  defp error_to_string(:not_accepted), do: "You can only upload CSV files"
+  defp error_msg(error) when is_atom(error) do
+    case error do
+      :too_large -> "File is too large"
+      :too_many_files -> "Too many files"
+      :not_accepted -> "You can only upload CSV files"
+      _ -> "Unknown error: #{error}"
+    end
+  end
 end
