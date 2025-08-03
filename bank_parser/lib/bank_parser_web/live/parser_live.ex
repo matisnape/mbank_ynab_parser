@@ -5,15 +5,8 @@ defmodule BankParserWeb.ParserLive do
 
   def mount(params, _session, socket) do
     socket
-    |> assign(
-      uploaded_files: [],
-      result: nil,
-      transactions: [],
-      original_transactions: [],
-      original_headers: nil,
-      original_filename: nil,
-      show_original: false
-    )
+    |> set_default_assigns()
+    |> assign(original_filename: nil)
     |> allow_upload(:csv, upload_opts())
     |> maybe_load_test_file(params)
     |> ok()
@@ -22,6 +15,7 @@ defmodule BankParserWeb.ParserLive do
   def handle_progress(:csv, entry, socket) do
     if entry.done? do
       socket
+      |> set_default_assigns()
       |> assign(original_filename: entry.client_name)
       |> process_finished_upload()
     else
@@ -64,7 +58,7 @@ defmodule BankParserWeb.ParserLive do
 
   def handle_transaction({headers, original_rows, parsed}, pid) when is_pid(pid) do
     # Get the LiveView process ID from the current process dictionary
-    lv_pid = Process.get(:live_view_pid) || pid |> IO.inspect(label: "anks pid")
+    lv_pid = Process.get(:live_view_pid) || pid
     send(lv_pid, {:transaction, {headers, original_rows, parsed}})
   end
 
@@ -150,8 +144,7 @@ defmodule BankParserWeb.ParserLive do
   end
 
   defp process_finished_upload(socket) do
-    # Store the LiveView PID in the process dictionary
-    Process.put(:live_view_pid, self()) |> IO.inspect(label: "live_view_pid")
+    Process.put(:live_view_pid, self())
 
     socket
     |> consume_uploaded_entries(:csv, fn %{path: path}, _entry ->
@@ -168,12 +161,22 @@ defmodule BankParserWeb.ParserLive do
         |> assign(result: "File processed successfully")
         |> no_reply()
 
-      {:error, reason} ->
+      [{:error, reason}] ->
         socket
         |> put_flash(:error, reason)
         |> no_reply()
     end
-    |> IO.inspect(label: "process_finished_upload", limit: :infinity)
+  end
+
+  defp set_default_assigns(socket) do
+    socket
+    |> assign(
+      result: nil,
+      transactions: [],
+      original_transactions: [],
+      original_headers: nil,
+      show_original: false
+    )
   end
 
   defp upload_opts do
