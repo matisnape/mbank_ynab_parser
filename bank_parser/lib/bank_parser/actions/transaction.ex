@@ -34,7 +34,24 @@ defmodule BankParser.Actions.Transaction do
   end
 
   def parse(:ing, transaction) do
-    [data_transakcji, _2, dane_kontrahenta, tytul, nr_rachunku, _6, szczegoly, _8, kwota, _9 | _] =
+    [
+      data_transakcji,
+      _2,
+      dane_kontrahenta,
+      tytul,
+      nr_rachunku,
+      _6,
+      szczegoly,
+      _8,
+      kwota,
+      _9,
+      _10,
+      _11,
+      _12,
+      _13,
+      _14,
+      saldo | _
+    ] =
       transaction
 
     %{
@@ -43,11 +60,12 @@ defmodule BankParser.Actions.Transaction do
       memo: sanitize(tytul),
       payee: sanitize(dane_kontrahenta),
       account_number: sanitize(nr_rachunku),
-      amount: format_number(kwota)
+      amount: format_number(kwota),
+      saldo: format_number(saldo)
     }
     |> prefill_ynab_fields()
     |> transform_operation()
-    |> Map.take([:date, :memo, :payee, :amount])
+    |> Map.take([:date, :memo, :payee, :amount, :saldo])
   end
 
   @internal_account_operations [
@@ -113,7 +131,9 @@ defmodule BankParser.Actions.Transaction do
     |> Enum.find(fn account ->
       String.contains?(account_id, account.id) or
         (transaction.operation == "PRZELEW NA TWOJE CELE" and
-           account.id == "PRZELEW NA TWOJE CELE")
+           account.id == "PRZELEW NA TWOJE CELE") or
+        (transaction.operation == "WYPŁATA Z CELU" and
+           String.contains?(transaction.payee, account.id))
     end)
     |> case do
       %{id: _, name: account_name} ->
