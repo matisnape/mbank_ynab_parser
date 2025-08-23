@@ -1,0 +1,19 @@
+{
+  "accounts": [
+    {
+      "id": "",
+      "name": "Mbank Ekonto PLN",
+      "description": "Main checking account"
+    },
+    {
+      "id": "PRZELEW NA TWOJE CELE",
+      "name": "Savings Goals",
+      "description": "Automatic savings transfers"
+    }
+  ],
+  "settings": {
+    "output_prefix": "eYNAB_ready_",
+    "include_balance": true,
+    "date_format": "YYYY-MM-DD"
+  }
+}
