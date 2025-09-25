@@ -14,6 +14,7 @@ defmodule BankParserWeb.ParserLive do
 
   def handle_progress(:csv, entry, socket) do
     if entry.done? do
+      # Reset state when a new file is actually uploaded and ready for processing
       socket
       |> set_default_assigns()
       |> assign(original_filename: entry.client_name)
@@ -42,12 +43,20 @@ defmodule BankParserWeb.ParserLive do
     tmp_path = Path.join(System.tmp_dir!(), filename)
     File.write!(tmp_path, csv_content)
 
+    # Clear upload entries after saving
+    socket =
+      socket.assigns.uploads.csv.entries
+      |> Enum.reduce(socket, fn entry, acc_socket ->
+        cancel_upload(acc_socket, :csv, entry.ref)
+      end)
+
     socket
     |> push_navigate(
       to: "/download/#{Path.basename(tmp_path)}",
       target: "_blank"
     )
     |> no_reply()
+    |> IO.inspect(label: "CSV saved", limit: :infinity)
   end
 
   def handle_event("toggle_original", _params, socket) do
@@ -146,14 +155,16 @@ defmodule BankParserWeb.ParserLive do
   defp process_finished_upload(socket) do
     Process.put(:live_view_pid, self())
 
-    socket
-    |> consume_uploaded_entries(:csv, fn %{path: path}, _entry ->
-      case Parser.process(path, &handle_transaction/2) do
-        :ok -> {:ok, :uploaded}
-        {:error, reason} -> {:ok, {:error, reason}}
-      end
-    end)
-    |> case do
+    result =
+      socket
+      |> consume_uploaded_entries(:csv, fn %{path: path}, _entry ->
+        case Parser.process(path, &handle_transaction/2) do
+          :ok -> {:ok, :uploaded}
+          {:error, reason} -> {:ok, {:error, reason}}
+        end
+      end)
+
+    case result do
       [:uploaded] ->
         Process.send_after(self(), :clear_flash, 5_000)
 
@@ -164,6 +175,11 @@ defmodule BankParserWeb.ParserLive do
       [{:error, reason}] ->
         socket
         |> put_flash(:error, reason)
+        |> no_reply()
+
+      _other ->
+        socket
+        |> put_flash(:error, "Unexpected upload result")
         |> no_reply()
     end
   end
